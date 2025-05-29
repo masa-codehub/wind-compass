@@ -81,6 +81,13 @@ domain_model_initial_draft:
     - name: "SimulationParameters"
     - name: "EffectiveWindSpeed"
     - name: "Power / Energy / Torque" # 単位を持つ物理量
+  repositories_ports: # (DDD) データ永続化層との契約を定義するリポジトリインターフェース
+    - name: "WindDataReader"
+      description: "風況データ（WindReadingの集合）を取得する責務を持つポート"
+      layer: "use_cases"
+    - name: "PowerPlantModelReader"
+      description: "設備特性モデル（PowerPlantModel）を取得する責務を持つポート"
+      layer: "use_cases"
   domain_services:
     - name: "PowerGenerationSimulator" # 確定した計算ロジック全体を担う
 
@@ -92,7 +99,9 @@ functional_requirements:
       - "指定されたパスから、風況データファイル（CSV形式）を読み込めること。"
       - "CSVファイルから `observed_at`, `max_wind_speed_mps`, `max_wind_direction_deg` カラムを正しく読み取れること。"
       - "指定されたパスから、設備特性コンフィグファイル（JSON形式）を読み込めること。"
-      - "コンフィグファイルから3種類の多項式係数（パワー、トルク、電流）を読み込めること。"
+      - "コンフィグファイルから、`turbine_power_curve`, `generator_torque_curve`, `generator_current_curve` に対応する3種類の3次多項式係数を読み込めること。"
+      - "（FR-001-err-01）ファイルが存在しない場合は`FileNotFoundError`を送出すること。"
+      - "（FR-001-err-02）ファイルの形式が不正（カラム不足、キー不足、データ型不一致、構文エラー等）な場合は、`ValueError`または`json.JSONDecodeError`を送出し、処理を中断すること。"
   - id: "FR-002"
     name: "シナリオ設定機能"
     details:

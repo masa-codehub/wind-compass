@@ -63,6 +63,14 @@ class EffectiveWindSpeed:
 
 
 @dataclass(frozen=True)
+class WindReading:
+    """観測時刻・風速・風向を表す値オブジェクト"""
+    observed_at: datetime
+    wind_speed: float  # m/s (mainブランチのコメント: max_wind_speed_mps を考慮し、m/s と明記)
+    wind_direction: float  # deg (mainブランチのコメント: max_wind_direction_deg を考慮し、deg と明記)
+
+
+@dataclass(frozen=True)
 class PolynomialCurve:
     """多項式カーブを表す。coeffs: [cN, ..., c0] 降べき順"""
     coeffs: List[float]
@@ -72,6 +80,8 @@ class PolynomialCurve:
             raise TypeError("coeffs must be a list of float")
         if not all(isinstance(c, (int, float)) for c in self.coeffs):
             raise TypeError("All coeffs must be float or int")
+        # mainブランチの制約(len(self.coeffs) != 4)は、より汎用的なこちらの定義では削除。
+        # 必要であれば、このクラスを利用する側で係数の数をチェックする。
         if len(self.coeffs) == 0:
             raise ValueError("coeffs must not be empty")
 
@@ -89,11 +99,3 @@ class PowerPlantModel:
     def __post_init__(self):
         if not all(isinstance(c, PolynomialCurve) for c in [self.power_curve, self.torque_curve, self.current_curve]):
             raise TypeError("All curves must be PolynomialCurve")
-
-
-@dataclass(frozen=True)
-class WindReading:
-    """観測時刻・風速・風向を表す値オブジェクト"""
-    observed_at: datetime
-    wind_speed: float  # m/s
-    wind_direction: float  # deg

@@ -4,12 +4,10 @@
 # アプリケーションの実行に必須のライブラリ
 # pip-compile によって requirements.txt に依存関係も含めて書き出されます
 
-requests
 pandas
-beautifulsoup4
-lxml
-html5lib
-tqdm
+pyyaml
+click
+numpy
 
 # --- Development Dependencies ---
 # 開発時にのみ使用するツール (テスト, Lint, Format, 依存関係管理等)

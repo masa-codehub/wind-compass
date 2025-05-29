@@ -122,9 +122,11 @@ github_issues:
     description: |
       保守性とテスト容易性の高いコードベースを維持するため、クリーンアーキテクチャに基づいたプロジェクトの骨格を実装する。(アジャイル要求リスト TASK-002 参照)
     tasks:
-      - "`src/wind_compass`内に`domain`, `use_cases`, `adapters`の各ディレクトリを作成する。"
-      - "`adapters`内に`__init__.py`を配置し、依存関係の方向性を制御する。"
-      - "データ永続化層のポート（インターフェース）として、`WindDataReader`と`PowerPlantModelReader`の抽象基底クラスを`use_cases`レイヤーに定義する。"
+      - "[x] `src/wind_compass`内に、クリーンアーキテクチャのレイヤーに対応する`domain`, `use_cases`, `adapters`の各ディレクトリを作成した。"
+      - "[x] `domain`レイヤーに、将来のドメインモデルのプレースホルダとして`models.py`を配置した。"
+      - "[x] `use_cases`レイヤーに、データ永続化層との契約となるポート（インターフェース）を定義する`ports.py`を配置した。"
+      - "[x] `ports.py`内に、抽象基底クラスとして`WindDataReader`と`PowerPlantModelReader`を定義した。"
+      - "[x] 上記のアーキテクチャ定義を検証する単体テスト (`tests/test_architecture.py`) を実装した。"
     acceptance_criteria:
       - "ディレクトリ構造がチームでレビューされ、合意されていること。"
       - "リポジトリインターフェースの定義が完了していること。"

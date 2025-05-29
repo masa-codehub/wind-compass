@@ -81,6 +81,13 @@ domain_model_initial_draft:
     - name: "SimulationParameters"
     - name: "EffectiveWindSpeed"
     - name: "Power / Energy / Torque" # 単位を持つ物理量
+  repositories_ports: # (DDD) データ永続化層との契約を定義するリポジトリインターフェース
+    - name: "WindDataReader"
+      description: "風況データ（WindReadingの集合）を取得する責務を持つポート"
+      layer: "use_cases"
+    - name: "PowerPlantModelReader"
+      description: "設備特性モデル（PowerPlantModel）を取得する責務を持つポート"
+      layer: "use_cases"
   domain_services:
     - name: "PowerGenerationSimulator" # 確定した計算ロジック全体を担う
 

@@ -1,0 +1,16 @@
+services:
+  wind-compass:
+    build:
+      context: ./${PROJECT_NAME}/.build
+      dockerfile: Dockerfile
+    image: ${PROJECT_NAME}_image
+    volumes:
+      - ./${PROJECT_NAME}:${CONTAINER_VOLUME:-/app}
+    working_dir: ${CONTAINER_VOLUME:-/app}
+    environment:
+      - PROJECT_NAME=${PROJECT_NAME}
+    ports:
+      - ${HOST_PORT:-8000}:${CONTAINER_PORT:-8000}
+    # command: ["bash", "run.sh"]
+    stdin_open: true
+    tty: true

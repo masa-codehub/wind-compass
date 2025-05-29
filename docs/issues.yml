@@ -1,0 +1,275 @@
+# -----------------------------------------------------------------------------
+# プロジェクト設定 & Issues: wind-compass
+# Version: 1.0
+# -----------------------------------------------------------------------------
+project_name: "wind-compass"
+version: "1.0"
+
+# =============================================================================
+# 1. マイルストーン (Milestones)
+# =============================================================================
+milestones:
+  - title: "v0.1: MVPリリース"
+    description: "中核となるシミュレーション機能を完成させ、ユーザーが基本的な単一・複数シナリオの分析をCLIで実行できる状態を目指します。"
+    state: "open"
+  - title: "v0.2: レポート機能強化"
+    description: "MVPの機能に加え、結果をCSVやグラフ画像としてファイル出力できるようにし、分析の幅を広げます。"
+    state: "open"
+  - title: "継続的改善 (Continuous Improvement)"
+    description: "特定の機能リリースに紐付かない、性能改善、リファクタリング、CI/CD強化など、プロダクトの健全性を維持するためのタスクを管理します。"
+    state: "open"
+
+# =============================================================================
+# 2. ラベル (Labels)
+# =============================================================================
+labels:
+  # --- Type Labels ---
+  - name: "type: user-story"
+    description: "ユーザーに直接的な価値を提供する機能要件。"
+    color: "0075ca" # Blue
+  - name: "type: technical-task"
+    description: "機能実装に必要な技術的な作業。"
+    color: "d73a4a" # Red
+  - name: "type: chore"
+    description: "ビルドや設定など、直接的な価値はないが必要な作業。"
+    color: "cfd3d7" # Grey
+  - name: "type: spike"
+    description: "技術的な調査や検証のためのタスク。"
+    color: "8a63d2" # Purple
+  - name: "type: test"
+    description: "テストコードの追加・改善に関するタスク。"
+    color: "f9d0c4" # Light Red
+  - name: "type: documentation"
+    description: "ドキュメント作成・更新に関するタスク。"
+    color: "d4c5f9" # Light Purple
+  # --- Layer Labels (Clean Architecture) ---
+  - name: "layer: domain"
+    description: "ドメインモデルとビジネスロジックに関するレイヤー。"
+    color: "0e8a16" # Dark Green
+  - name: "layer: usecase"
+    description: "アプリケーション固有のビジネスルールを実装するレイヤー。"
+    color: "238636" # Green
+  - name: "layer: adapter-ui"
+    description: "UI（CLIなど）に関するアダプターレイヤー。"
+    color: "a2eeef" # Light Blue
+  - name: "layer: adapter-data"
+    description: "データ永続化（ファイルI/Oなど）に関するアダプターレイヤー。"
+    color: "3fb950" # Light Green
+  - name: "layer: infrastructure"
+    description: "CI/CD、実行環境、外部ライブラリなどに関するレイヤー。"
+    color: "f69d5b" # Orange
+  # --- Epic Labels ---
+  - name: "epic: mvp-core"
+    description: "EPIC-01: MVPシミュレーションコアに関連するIssue。"
+    color: "7057ff" # Violet
+  - name: "epic: reporting"
+    description: "EPIC-02: 高度な分析とレポート機能に関連するIssue。"
+    color: "7057ff" # Violet
+  - name: "epic: foundation"
+    description: "EPIC-03: 開発・運用基盤に関連するIssue。"
+    color: "7057ff" # Violet
+  # --- Principle Labels ---
+  - name: "principle: TDD"
+    description: "テスト駆動開発を特に意識すべきIssue。"
+    color: "ffa500" # Orange
+  - name: "principle: DDD"
+    description: "ドメイン駆動設計の概念を特に意識すべきIssue。"
+    color: "ffa500" # Orange
+  # --- Priority Labels ---
+  - name: "priority: high"
+    description: "優先度が高いIssue。"
+    color: "b60205" # Dark Red
+  - name: "priority: medium"
+    description: "優先度が中程度のIssue。"
+    color: "fbca04" # Yellow
+  - name: "priority: low"
+    description: "優先度が低いIssue。"
+    color: "0e8a16" # Dark Green
+  # --- Status Labels ---
+  - name: "status: needs-discussion"
+    description: "実装前にチームでの議論が必要なIssue。"
+    color: "bfd4f2" # Light Blue
+  - name: "status: blocked"
+    description: "他のIssueにブロックされているIssue。"
+    color: "000000" # Black
+
+# =============================================================================
+# 3. GitHub Issues
+# =============================================================================
+github_issues:
+  - title: "[Chore] プロジェクトの初期セットアップ (TASK-001)"
+    description: |
+      開発を開始するための基本的な環境をセットアップする。
+    tasks:
+      - "Gitリポジトリを作成し、`main`, `develop`ブランチを設定する。"
+      - "Pythonのバージョン（3.9+）を`.python-version`ファイルで固定する。"
+      - "Poetry (`pyproject.toml`) を用いてプロジェクトを初期化し、Pandas, PyYAML, Clickなどの基本ライブラリを導入する。"
+      - "`pre-commit`フックを設定し、リンター（例: `ruff`）とフォーマッター（例: `black`）を導入する。"
+    acceptance_criteria:
+      - "`poetry install`で開発環境が構築できること。"
+      - "`git commit`時にリンターとフォーマッターが自動実行されること。"
+    metadata:
+      related_requirement: "TASK-001"
+      depends_on: []
+      milestone: "v0.1: MVPリリース"
+      labels:
+        - "type: chore"
+        - "epic: foundation"
+        - "layer: infrastructure"
+        - "priority: high"
+
+  - title: "[Task] クリーンアーキテクチャのディレクトリ構造とインターフェース定義 (TASK-002)"
+    description: |
+      保守性とテスト容易性の高いコードベースを維持するため、クリーンアーキテクチャに基づいたプロジェクトの骨格を実装する。
+    tasks:
+      - "`src/wind_compass`内に`domain`, `use_cases`, `adapters`の各ディレクトリを作成する。"
+      - "`adapters`内に`__init__.py`を配置し、`use_cases`や`domain`から直接インポートできないようにする。"
+      - "データ永続化層のポート（インターフェース）として、`WindDataRepository`と`PowerPlantModelRepository`の抽象基底クラスを`use_cases`レイヤーに定義する。"
+    acceptance_criteria:
+      - "ディレクトリ構造がレビューされ、チームで合意されていること。"
+      - "リポジトリインターフェースの定義が完了していること。"
+    metadata:
+      related_requirement: "TASK-002"
+      depends_on:
+        - "[Chore] プロジェクトの初期セットアップ (TASK-001)"
+      milestone: "v0.1: MVPリリース"
+      labels:
+        - "type: technical-task"
+        - "epic: foundation"
+        - "layer: domain"
+        - "layer: usecase"
+        - "layer: adapter-data"
+        - "priority: high"
+
+  - title: "[Task][Domain] コア計算ドメインモデルの実装 (US-001)"
+    description: |
+      ユーザーストーリー`US-001`の核となる、発電量計算のためのドメインモデルとビジネスロジックをTDDで実装する。
+    tasks:
+      - "`WindReading`, `Power`, `Energy`, `EffectiveWindSpeed`などの値オブジェクトを`domain`レイヤーに実装する。"
+      - "`EffectiveWindSpeed`に`V * cos(θ)`の計算ロジックと、背風を0として扱うロジックを実装する。"
+      - "`PowerPlantModel`エンティティと、`PowerCalculationService`ドメインサービスを実装する。"
+      - "上記すべてのクラス/関数に対するユニットテストを作成する。テストケースには、境界値（`cos(90度)`など）を含むこと。"
+    acceptance_criteria:
+      - "`US-001`の`AC-01-03`を満たすこと。"
+      - "`domain`レイヤーのテストカバレッジが95%以上であること。"
+    metadata:
+      related_requirement: "US-001"
+      depends_on:
+        - "[Task] クリーンアーキテクチャのディレクトリ構造とインターフェース定義 (TASK-002)"
+      milestone: "v0.1: MVPリリース"
+      labels:
+        - "type: technical-task"
+        - "layer: domain"
+        - "epic: mvp-core"
+        - "principle: DDD"
+        - "principle: TDD"
+        - "priority: high"
+
+  - title: "[Task][Adapter] データI/Oアダプタの実装 (US-001)"
+    description: |
+      `US-001`に必要なデータをファイルから読み込むためのアダプタを`adapter-data`レイヤーに実装する。
+    tasks:
+      - "`WindDataRepository`インターフェースを実装する`CsvWindDataReader`クラスを作成する。"
+      - "`PowerPlantModelRepository`インターフェースを実装する`JsonPowerPlantModelReader`クラスを作成する。"
+      - "ファイルが存在しない、フォーマットが不正な場合に適切な例外を送出する処理を実装する。"
+      - "上記クラスの結合テストを作成する（実際のテスト用ファイルを使用）。"
+    acceptance_criteria:
+      - "指定したCSV/JSONファイルから、ドメインモデル（`WindReading`, `PowerPlantModel`）のリストを正しく生成できること。"
+      - "不正なファイルに対するエラーハンドリングがテストされていること。"
+    metadata:
+      related_requirement: "US-001"
+      depends_on:
+        - "[Task] クリーンアーキテクチャのディレクトリ構造とインターフェース定義 (TASK-002)"
+      milestone: "v0.1: MVPリリース"
+      labels:
+        - "type: technical-task"
+        - "layer: adapter-data"
+        - "epic: mvp-core"
+        - "priority: high"
+
+  - title: "[UserStory] 単一シナリオ実行ユースケースの実装 (US-001)"
+    description: |
+      ドメインモデルとアダプタを統合し、単一シナリオのシミュレーションを実行するユースケース（Interactor）を実装する。
+    tasks:
+      - "単一シナリオの実行に必要な入力（パラメータ、リポジトリ）と出力（年間発電量）を定義する。"
+      - "`RunSingleScenarioUseCase`を`use_cases`レイヤーに実装する。リポジトリからデータを取得し、ドメインサービスを呼び出して計算を実行する。"
+      - "ユースケースのユニットテストを作成する（リポジトリはモック化/スタブ化する）。"
+    acceptance_criteria:
+      - "`US-001`の`AC-01-01`および`AC-01-02`が、CLIとの結合を除いて満たされていること。"
+      - "ユニットテストで、ユースケースがドメインと正しく連携していることを確認できること。"
+    metadata:
+      related_requirement: "US-001"
+      depends_on:
+        - "[Task][Domain] コア計算ドメインモデルの実装 (US-001)"
+        - "[Task][Adapter] データI/Oアダプタの実装 (US-001)"
+      milestone: "v0.1: MVPリリース"
+      labels:
+        - "type: user-story"
+        - "layer: usecase"
+        - "epic: mvp-core"
+        - "priority: high"
+
+  - title: "[UserStory] 複数シナリオ実行とCLI統合 (US-002)"
+    description: |
+      `US-001`で実装した単一シナリオ実行機能を拡張し、複数のシナリオを一括で実行できるようにする。また、CLIから操作できるように全体を統合する。
+    tasks:
+      - "`Click`ライブラリ等を用いて、コマンドライン引数（ファイルパス、固定角度、変速比）を解析する処理を`adapter-ui`レイヤーに実装する。"
+      - "`RunMultipleScenariosUseCase`を実装し、入力されたパラメータの組み合わせ分、`RunSingleScenarioUseCase`を呼び出す。"
+      - "全シナリオの結果をマトリクス表に整形する`Presenter`クラスを`adapter-ui`レイヤーに実装する。"
+      - "依存性注入（DI）コンテナをセットアップし、`main`関数ですべてのコンポーネントを結合する。"
+      - "E2E（エンドツーエンド）テストを作成し、コマンド実行から結果表示までの一連の流れを確認する。"
+    acceptance_criteria:
+      - "`US-002`の`AC-02-01`および`AC-02-02`を満たすこと。"
+      - "ヘルプメッセージが表示され、コマンドの使い方がわかること。"
+    metadata:
+      related_requirement: "US-002"
+      depends_on:
+        - "[UserStory] 単一シナリオ実行ユースケースの実装 (US-001)"
+      milestone: "v0.1: MVPリリース"
+      labels:
+        - "type: user-story"
+        - "layer: usecase"
+        - "layer: adapter-ui"
+        - "epic: mvp-core"
+        - "priority: high"
+
+  - title: "[UserStory] 比較レポートのCSVファイル出力 (US-004)"
+    description: |
+      ユーザーストーリー`US-004`を実装し、シミュレーション結果をCSVファイルとして保存できるようにする。
+    tasks:
+      - "CLIに`--output-csv`オプションを追加する。"
+      - "`Presenter`に、結果をCSV形式でファイルに書き出す機能を追加する。"
+      - "オプションが指定された場合のみ、ファイルが出力されることを確認するE2Eテストを追加する。"
+    acceptance_criteria:
+      - "`US-004`の`AC-04-01`および`AC-04-02`を満たすこと。"
+    metadata:
+      related_requirement: "US-004"
+      depends_on:
+        - "[UserStory] 複数シナリオ実行とCLI統合 (US-002)"
+      milestone: "v0.2: レポート機能強化"
+      labels:
+        - "type: user-story"
+        - "layer: adapter-ui"
+        - "epic: reporting"
+        - "priority: medium"
+
+  - title: "[Spike] グラフ描画ライブラリの調査・選定 (US-005)"
+    description: |
+      ユーザーストーリー`US-005`で求められるグラフ描画機能を実現するため、最適なPythonライブラリを調査・選定する。
+    tasks:
+      - "`Matplotlib`, `Seaborn`, `Plotly`などの候補ライブラリをリストアップする。"
+      - "レーダーチャートと棒グラフの描画が容易か評価する。"
+      - "画像ファイルとしての出力が簡単か、依存関係は重すぎないか評価する。"
+      - "簡単なプロトタイプを作成し、チームにデモを行う。"
+    acceptance_criteria:
+      - "チームが、`US-005`を実装するための技術選定に合意できること。"
+      - "選定理由がドキュメント化されていること。"
+    metadata:
+      related_requirement: "US-005"
+      depends_on: []
+      milestone: "v0.2: レポート機能強化"
+      labels:
+        - "type: spike"
+        - "epic: reporting"
+        - "status: needs-discussion"
+        - "priority: medium"

@@ -99,11 +99,11 @@ labels:
 github_issues:
   - title: "[Chore] プロジェクトの初期セットアップ (TASK-001)"
     description: |
-      開発を開始するための基本的な環境をセットアップする。
+      開発を開始するための基本的な環境をセットアップする。(アジャイル要求リスト TASK-001 参照)
     tasks:
       - "Gitリポジトリを作成し、`main`, `develop`ブランチを設定する。"
       - "Pythonのバージョン（3.9+）を`.python-version`ファイルで固定する。"
-      - "Poetry (`pyproject.toml`) を用いてプロジェクトを初期化し、Pandas, PyYAML, Clickなどの基本ライブラリを導入する。"
+      - "Poetry (`pyproject.toml`) を用いてプロジェクトを初期化し、Pandas, PyYAML, Click/Argparseなどの基本ライブラリを導入する。"
       - "`pre-commit`フックを設定し、リンター（例: `ruff`）とフォーマッター（例: `black`）を導入する。"
     acceptance_criteria:
       - "`poetry install`で開発環境が構築できること。"
@@ -120,18 +120,18 @@ github_issues:
 
   - title: "[Task] クリーンアーキテクチャのディレクトリ構造とインターフェース定義 (TASK-002)"
     description: |
-      保守性とテスト容易性の高いコードベースを維持するため、クリーンアーキテクチャに基づいたプロジェクトの骨格を実装する。
+      保守性とテスト容易性の高いコードベースを維持するため、クリーンアーキテクチャに基づいたプロジェクトの骨格を実装する。(アジャイル要求リスト TASK-002 参照)
     tasks:
       - "`src/wind_compass`内に`domain`, `use_cases`, `adapters`の各ディレクトリを作成する。"
-      - "`adapters`内に`__init__.py`を配置し、`use_cases`や`domain`から直接インポートできないようにする。"
-      - "データ永続化層のポート（インターフェース）として、`WindDataRepository`と`PowerPlantModelRepository`の抽象基底クラスを`use_cases`レイヤーに定義する。"
+      - "`adapters`内に`__init__.py`を配置し、依存関係の方向性を制御する。"
+      - "データ永続化層のポート（インターフェース）として、`WindDataReader`と`PowerPlantModelReader`の抽象基底クラスを`use_cases`レイヤーに定義する。"
     acceptance_criteria:
-      - "ディレクトリ構造がレビューされ、チームで合意されていること。"
+      - "ディレクトリ構造がチームでレビューされ、合意されていること。"
       - "リポジトリインターフェースの定義が完了していること。"
     metadata:
       related_requirement: "TASK-002"
       depends_on:
-        - "[Chore] プロジェクトの初期セットアップ (TASK-001)"
+        - "TASK-001" # Dependency expressed as ID
       milestone: "v0.1: MVPリリース"
       labels:
         - "type: technical-task"
@@ -141,21 +141,29 @@ github_issues:
         - "layer: adapter-data"
         - "priority: high"
 
-  - title: "[Task][Domain] コア計算ドメインモデルの実装 (US-001)"
+  - title: "[Task][Domain] コア計算ドメインモデルの実装 (TASK-003A)"
     description: |
-      ユーザーストーリー`US-001`の核となる、発電量計算のためのドメインモデルとビジネスロジックをTDDで実装する。
+      ユーザーストーリー`US-001`の核となる、最終確定版の計算ロジック（風車パワーカーブ、伝達効率、発電機トルク特性カーブによる回転数算出、発電機電流特性カーブによる最終電力算出）のためのドメインモデルとビジネスロジックをTDDで実装する。(アジャイル要求リスト TASK-003A 参照)
     tasks:
-      - "`WindReading`, `Power`, `Energy`, `EffectiveWindSpeed`などの値オブジェクトを`domain`レイヤーに実装する。"
-      - "`EffectiveWindSpeed`に`V * cos(θ)`の計算ロジックと、背風を0として扱うロジックを実装する。"
-      - "`PowerPlantModel`エンティティと、`PowerCalculationService`ドメインサービスを実装する。"
-      - "上記すべてのクラス/関数に対するユニットテストを作成する。テストケースには、境界値（`cos(90度)`など）を含むこと。"
+      - "`WindReading`, `EffectiveWindSpeed`, `Power`, `Energy`, `Torque`等の値オブジェクトを`domain`レイヤーに実装する。"
+      - "`PowerPlantModel`エンティティ（または値オブジェクト）に3つの特性カーブ（パワー、トルク、電流）の係数を保持する構造を実装する。"
+      - "`PowerGenerationSimulator`ドメインサービス（または関連クラス群）を実装する。"
+      - "  有効風速計算ロジック"
+      - "  風車パワーカーブからのタービン電力計算ロジック"
+      - "  伝達効率を適用した発電機軸への伝達電力計算ロジック"
+      - "  トルク特性カーブと伝達電力から発電機回転数を求める4次方程式の数値解法の実装（例: `numpy.roots`等を利用）"
+      - "  発電機電流特性カーブと回転数からの電流計算ロジック"
+      - "  電流と電圧からの最終電力計算ロジック"
+      - "  カットイン回転数判定ロジック"
+      - "上記すべてのクラス/関数に対するユニットテストを作成する（境界値、方程式の解がない場合、物理的に不適切な解の除外など）。"
     acceptance_criteria:
-      - "`US-001`の`AC-01-03`を満たすこと。"
-      - "`domain`レイヤーのテストカバレッジが95%以上であること。"
+      - "`US-001`の`AC-01-03`をドメインレベルで満たすこと。"
+      - "既知の入力パラメータセットに対する計算結果が、手計算またはリファレンス実装と一致すること。"
+      - "ドメインレイヤーのテストカバレッジが95%以上であること。"
     metadata:
-      related_requirement: "US-001"
+      related_requirement: "TASK-003A" # Also related to US-001
       depends_on:
-        - "[Task] クリーンアーキテクチャのディレクトリ構造とインターフェース定義 (TASK-002)"
+        - "TASK-002"
       milestone: "v0.1: MVPリリース"
       labels:
         - "type: technical-task"
@@ -165,21 +173,23 @@ github_issues:
         - "principle: TDD"
         - "priority: high"
 
-  - title: "[Task][Adapter] データI/Oアダプタの実装 (US-001)"
+  - title: "[Task][Adapter-Data] データI/Oアダプタの実装 (TASK-004)"
     description: |
-      `US-001`に必要なデータをファイルから読み込むためのアダプタを`adapter-data`レイヤーに実装する。
+      最終確定した入力データ仕様に基づき、風況データCSVファイルと設備特性コンフィグファイルを読み込むアダプタを`adapter-data`レイヤーに実装する。(アジャイル要求リスト TASK-004 参照)
     tasks:
-      - "`WindDataRepository`インターフェースを実装する`CsvWindDataReader`クラスを作成する。"
-      - "`PowerPlantModelRepository`インターフェースを実装する`JsonPowerPlantModelReader`クラスを作成する。"
+      - "`WindDataReader`インターフェースを実装する`CsvWindDataReader`クラスを作成する。"
+      - "  `observed_at`, `max_wind_speed_mps`, `max_wind_direction_deg` カラムを読み取る処理を実装。"
+      - "`PowerPlantModelReader`インターフェースを実装する`JsonConfigReader`クラスを作成する。"
+      - "  3種類の3次多項式係数（風車パワーカーブ、発電機トルクカーブ、発電機電流カーブ）をJSONファイルから読み取る処理を実装。"
       - "ファイルが存在しない、フォーマットが不正な場合に適切な例外を送出する処理を実装する。"
       - "上記クラスの結合テストを作成する（実際のテスト用ファイルを使用）。"
     acceptance_criteria:
-      - "指定したCSV/JSONファイルから、ドメインモデル（`WindReading`, `PowerPlantModel`）のリストを正しく生成できること。"
-      - "不正なファイルに対するエラーハンドリングがテストされていること。"
+      - "指定したCSV/JSONファイルから、ドメインモデルや値オブジェクトを正しく生成できること。"
+      - "不正なファイル（カラム不足、型不一致など）に対するエラーハンドリングがテストされていること。"
     metadata:
-      related_requirement: "US-001"
+      related_requirement: "TASK-004" # Also related to US-001, US-003
       depends_on:
-        - "[Task] クリーンアーキテクチャのディレクトリ構造とインターフェース定義 (TASK-002)"
+        - "TASK-002"
       milestone: "v0.1: MVPリリース"
       labels:
         - "type: technical-task"
@@ -189,19 +199,22 @@ github_issues:
 
   - title: "[UserStory] 単一シナリオ実行ユースケースの実装 (US-001)"
     description: |
-      ドメインモデルとアダプタを統合し、単一シナリオのシミュレーションを実行するユースケース（Interactor）を実装する。
+      ユーザーストーリー `US-001` を実現するためのユースケース（Interactor）を実装する。ドメインモデルとデータアダプタを統合し、単一シナリオのシミュレーションを実行し、結果を返す責務を持つ。(アジャイル要求リスト US-001 参照)
     tasks:
-      - "単一シナリオの実行に必要な入力（パラメータ、リポジトリ）と出力（年間発電量）を定義する。"
-      - "`RunSingleScenarioUseCase`を`use_cases`レイヤーに実装する。リポジトリからデータを取得し、ドメインサービスを呼び出して計算を実行する。"
-      - "ユースケースのユニットテストを作成する（リポジトリはモック化/スタブ化する）。"
+      - "単一シナリオ実行のための入力DTO（パラメータ、ファイルパス）と出力DTO（年間発電量）を定義する。"
+      - "`RunSingleSimulationScenarioUseCase`を`use_cases`レイヤーに実装する。"
+      - "  データアダプタを介して風況データと設備モデルをロードする。"
+      - "  `PowerGenerationSimulator`ドメインサービスを呼び出して計算を実行する。"
+      - "  結果を出力DTOにマッピングする。"
+      - "ユースケースのユニットテストを作成する（リポジトリやドメインサービスはモック化/スタブ化する）。"
     acceptance_criteria:
-      - "`US-001`の`AC-01-01`および`AC-01-02`が、CLIとの結合を除いて満たされていること。"
-      - "ユニットテストで、ユースケースがドメインと正しく連携していることを確認できること。"
+      - "`US-001`の`AC-01-01`および`AC-01-02`が、CLIとの最終的な結合を除いて、ユースケースレベルで満たされていること。"
+      - "ユニットテストで、ユースケースがドメインサービスやリポジトリインターフェースと正しく連携していることを確認できること。"
     metadata:
       related_requirement: "US-001"
       depends_on:
-        - "[Task][Domain] コア計算ドメインモデルの実装 (US-001)"
-        - "[Task][Adapter] データI/Oアダプタの実装 (US-001)"
+        - "TASK-003A"
+        - "TASK-004"
       milestone: "v0.1: MVPリリース"
       labels:
         - "type: user-story"
@@ -211,20 +224,20 @@ github_issues:
 
   - title: "[UserStory] 複数シナリオ実行とCLI統合 (US-002)"
     description: |
-      `US-001`で実装した単一シナリオ実行機能を拡張し、複数のシナリオを一括で実行できるようにする。また、CLIから操作できるように全体を統合する。
+      ユーザーストーリー `US-002` を実現するため、単一シナリオ実行機能を拡張し、複数のシナリオを一括で実行できるようにする。また、CLIから操作できるように全体を統合する。(アジャイル要求リスト US-002 参照)
     tasks:
-      - "`Click`ライブラリ等を用いて、コマンドライン引数（ファイルパス、固定角度、変速比）を解析する処理を`adapter-ui`レイヤーに実装する。"
-      - "`RunMultipleScenariosUseCase`を実装し、入力されたパラメータの組み合わせ分、`RunSingleScenarioUseCase`を呼び出す。"
-      - "全シナリオの結果をマトリクス表に整形する`Presenter`クラスを`adapter-ui`レイヤーに実装する。"
-      - "依存性注入（DI）コンテナをセットアップし、`main`関数ですべてのコンポーネントを結合する。"
+      - "`Click`ライブラリ等を用いて、コマンドライン引数（ファイルパス、複数の固定角度、複数の変速比）を解析する処理を`adapter-ui`レイヤーに実装する。(アジャイル要求リスト TASK-003B 参照)"
+      - "`RunMultipleSimulationScenariosUseCase`を実装し、入力されたパラメータの全組み合わせについて`RunSingleSimulationScenarioUseCase`を呼び出す。"
+      - "全シナリオの結果をマトリクス表に整形する`ConsolePresenter`クラスを`adapter-ui`レイヤーに実装する。"
+      - "依存性注入（DI）コンテナ（手動またはライブラリ）をセットアップし、`main`関数ですべてのコンポーネントを結合する。"
       - "E2E（エンドツーエンド）テストを作成し、コマンド実行から結果表示までの一連の流れを確認する。"
     acceptance_criteria:
       - "`US-002`の`AC-02-01`および`AC-02-02`を満たすこと。"
-      - "ヘルプメッセージが表示され、コマンドの使い方がわかること。"
+      - "CLIで`-h`または`--help`オプションにより、コマンドの使い方が表示されること。"
     metadata:
-      related_requirement: "US-002"
+      related_requirement: "US-002" # Also related to TASK-003B
       depends_on:
-        - "[UserStory] 単一シナリオ実行ユースケースの実装 (US-001)"
+        - "US-001"
       milestone: "v0.1: MVPリリース"
       labels:
         - "type: user-story"
@@ -233,19 +246,40 @@ github_issues:
         - "epic: mvp-core"
         - "priority: high"
 
+  - title: "[UserStory] 設備モデル差し替えによる比較シミュレーション (US-003)"
+    description: |
+      ユーザーストーリー `US-003` を実装し、異なる設備特性コンフィグファイルを指定してシミュレーション結果を比較できるようにする。(アジャイル要求リスト US-003 参照)
+    tasks:
+      - "CLIで設備特性コンフィグファイルのパスを指定できることを確認する。(既存の機能で対応可能か確認)"
+      - "異なるコンフィグファイル（例: 異なる係数セット）で実行した場合に、結果が変動することを確認するテスト（E2Eまたは結合テスト）を作成する。"
+      - "コンフィグファイルの内容検証（必須キー、係数の数など）を`JsonConfigReader`アダプタに追加する。"
+    acceptance_criteria:
+      - "`US-003`の`AC-03-01`および`AC-03-02`を満たすこと。"
+    metadata:
+      related_requirement: "US-003"
+      depends_on:
+        - "US-001" # Relies on the core simulation logic and config loading
+      milestone: "v0.1: MVPリリース"
+      labels:
+        - "type: user-story"
+        - "layer: adapter-data"
+        - "layer: domain"
+        - "epic: mvp-core"
+        - "priority: medium"
+
   - title: "[UserStory] 比較レポートのCSVファイル出力 (US-004)"
     description: |
-      ユーザーストーリー`US-004`を実装し、シミュレーション結果をCSVファイルとして保存できるようにする。
+      ユーザーストーリー`US-004`を実装し、シミュレーション結果をCSVファイルとして保存できるようにする。(アジャイル要求リスト US-004 参照)
     tasks:
-      - "CLIに`--output-csv`オプションを追加する。"
-      - "`Presenter`に、結果をCSV形式でファイルに書き出す機能を追加する。"
+      - "CLIに`--output-csv <filepath>`オプションを追加する。"
+      - "`ConsolePresenter`（または新しい`CsvPresenter`）に、結果をCSV形式で指定されたファイルパスに書き出す機能を追加する。"
       - "オプションが指定された場合のみ、ファイルが出力されることを確認するE2Eテストを追加する。"
     acceptance_criteria:
       - "`US-004`の`AC-04-01`および`AC-04-02`を満たすこと。"
     metadata:
       related_requirement: "US-004"
       depends_on:
-        - "[UserStory] 複数シナリオ実行とCLI統合 (US-002)"
+        - "US-002"
       milestone: "v0.2: レポート機能強化"
       labels:
         - "type: user-story"
@@ -253,23 +287,67 @@ github_issues:
         - "epic: reporting"
         - "priority: medium"
 
-  - title: "[Spike] グラフ描画ライブラリの調査・選定 (US-005)"
+  - title: "[Spike] グラフ描画ライブラリの調査・選定 (US-005関連)"
     description: |
-      ユーザーストーリー`US-005`で求められるグラフ描画機能を実現するため、最適なPythonライブラリを調査・選定する。
+      ユーザーストーリー`US-005`で求められるグラフ描画機能を実現するため、最適なPythonライブラリを調査・選定する。(アジャイル要求リスト (旧)TASK-005 / US-005 参照)
     tasks:
       - "`Matplotlib`, `Seaborn`, `Plotly`などの候補ライブラリをリストアップする。"
       - "レーダーチャートと棒グラフの描画が容易か評価する。"
       - "画像ファイルとしての出力が簡単か、依存関係は重すぎないか評価する。"
-      - "簡単なプロトタイプを作成し、チームにデモを行う。"
+      - "簡単なプロトタイプを作成し、チームにデモを行い、選定結果をドキュメント化する。"
     acceptance_criteria:
       - "チームが、`US-005`を実装するための技術選定に合意できること。"
-      - "選定理由がドキュメント化されていること。"
+      - "選定理由と簡単な使い方がドキュメント化されていること。"
     metadata:
-      related_requirement: "US-005"
+      related_requirement: "US-005" # Relates to US-005
       depends_on: []
       milestone: "v0.2: レポート機能強化"
       labels:
         - "type: spike"
         - "epic: reporting"
         - "status: needs-discussion"
+        - "priority: medium"
+
+  - title: "[UserStory] 比較レポートのグラフ画像出力 (US-005)"
+    description: |
+      ユーザーストーリー`US-005`を実装し、シミュレーション結果をグラフ画像として保存できるようにする。(アジャイル要求リスト US-005 参照)
+    tasks:
+      - "(前提) `[Spike] グラフ描画ライブラリの調査・選定` が完了していること。"
+      - "CLIに`--output-graph <filepath>`オプションと、グラフタイプ（例: `--graph-type radar/bar`）オプションを追加する。"
+      - "`Presenter`（または新しい`GraphPresenter`）に、結果を選定したライブラリでグラフ化し、指定されたファイルパスに画像として保存する機能を追加する。"
+      - "オプションが指定された場合のみ、ファイルが出力されることを確認するE2Eテストを追加する。"
+    acceptance_criteria:
+      - "`US-005`の`AC-05-01`および`AC-05-02`を満たすこと。"
+    metadata:
+      related_requirement: "US-005"
+      depends_on:
+        - "US-002"
+        - "[Spike] グラフ描画ライブラリの調査・選定 (US-005関連)"
+      milestone: "v0.2: レポート機能強化"
+      labels:
+        - "type: user-story"
+        - "layer: adapter-ui"
+        - "epic: reporting"
+        - "priority: medium"
+
+  - title: "[Task] 性能ベンチマークテストの作成と実施 (TASK-005)"
+    description: |
+      1年分（約5万行）のダミーデータと16シナリオのテストケースを作成し、CI/CDパイプラインに組み込み、定期的に実行して性能劣化を検知できるようにする。(アジャイル要求リスト TASK-005 参照)
+    tasks:
+      - "性能測定用のベンチマークスクリプトを作成する。"
+      - "1年分の現実的なダミー風況データと、複数の設備特性コンフィグファイルを作成する。"
+      - "CI環境でベンチマークテストを実行し、実行時間を記録・比較できるようにする。"
+      - "性能要件（例: 60秒以内）をクリアしていることを確認する。"
+    acceptance_criteria:
+      - "ベンチマークテストがCIで自動実行されること。"
+      - "設定された性能目標をクリアしていること。"
+    metadata:
+      related_requirement: "TASK-005" # This is the ID from the Agile Requirements List
+      depends_on:
+        - "US-002" # Needs multiple scenario execution to be benchmarked
+      milestone: "継続的改善 (Continuous Improvement)"
+      labels:
+        - "type: technical-task"
+        - "layer: infrastructure"
+        - "epic: foundation"
         - "priority: medium"

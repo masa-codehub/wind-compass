@@ -155,8 +155,14 @@ glossary:
 
 # 11. 制約条件・前提条件
 constraints_and_assumptions:
-  execution_environment: "主要なOS（Windows, macOS, Linux）で動作するスタンドアロンアプリケーションとする。"
-  development_language: "Python 3.9以降（または他のモダンな言語、要合意）。"
+  execution_environment: "Dockerコンテナ内での開発・実行を前提とする。" # Docker利用を明記
+  development_language: "Python 3.13.3以降" # 具体的なバージョンを明記
+  package_management: # パッケージ管理の項目を新設
+    - "パッケージ管理は `pip` と `requirements.txt` ファイル群で行う。"
+    - "本番用依存関係は `requirements.txt` に、開発・テスト用依存関係は `requirements-dev.txt` に定義する。"
+  testing_framework: # テストフレームワークの項目を新設
+    - "テストフレームワークには `pytest` を使用する。"
+    - "テストコードは `tests/` ディレクトリ配下に配置する。"
   data_format:
     - "風況データはCSV形式とし、`observed_at`, `max_wind_speed_mps`, `max_wind_direction_deg` カラムを使用する。"
     - "風向は角度(degree)で与えられるものとする。"

@@ -101,10 +101,10 @@ github_issues:
     description: |
       開発を開始するための基本的な環境をセットアップする。(アジャイル要求リスト TASK-001 参照)
     tasks:
-      - "Gitリポジトリを作成し、`main`, `develop`ブランチを設定する。"
-      - "Pythonのバージョン（3.9+）を`.python-version`ファイルで固定する。"
-      - "Poetry (`pyproject.toml`) を用いてプロジェクトを初期化し、Pandas, PyYAML, Click/Argparseなどの基本ライブラリを導入する。"
-      - "`pre-commit`フックを設定し、リンター（例: `ruff`）とフォーマッター（例: `black`）を導入する。"
+      - "[x] 依存関係を `requirements.txt` (本番用) と `requirements-dev.txt` (開発用) に定義"
+      - "[x] `pytest` をテストフレームワークとして導入し、`pyproject.toml` でテスト探索パスとカバレッジ計測を基本設定"
+      - "[x] `pytest` の設定を検証するためのプレースホルダーテスト (`tests/test_placeholder.py`) を実装"
+      - "[x] (議論事項) 当初計画のPoetryやリンターは、開発速度を優先するため、今回は見送ることを決定"
     acceptance_criteria:
       - "`poetry install`で開発環境が構築できること。"
       - "`git commit`時にリンターとフォーマッターが自動実行されること。"

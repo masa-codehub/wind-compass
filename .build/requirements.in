@@ -8,6 +8,7 @@ pandas
 pyyaml
 click
 numpy
+tabulate
 
 # --- Development Dependencies ---
 # 開発時にのみ使用するツール (テスト, Lint, Format, 依存関係管理等)

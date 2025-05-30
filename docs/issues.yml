@@ -367,6 +367,34 @@ github_issues:
         - "epic: foundation"
         - "priority: medium"
 
+  # --- ここから issue#37_01 ブランチ側の TASK-008 を採用 ---
+  - title: "[Chore] 年間発電量計算における時間間隔 (Δt) の仕様決定と実装統一 (TASK-008)"
+    description: |
+      年間発電量計算における時間間隔（Δt）の扱いについて、要件・実装・テスト・ドキュメントを現状の実装方針に統一する。
+      風況データの観測時刻からΔtを推定し、N-1区間で積算する方式を正式仕様とし、関連コード・テスト・ドキュメントを同期する。
+    tasks:
+      - "[x] Δtの扱いについて、現行の `src/wind_compass/use_cases/simulation_use_cases.py` の実装（風況データの観測時刻から都度推定し、N-1区間で積算する方式）を正式な仕様とすることで合意。"
+      - "[x] `RunSingleSimulationScenarioUseCase` (@ `src/wind_compass/use_cases/simulation_use_cases.py`) のΔt計算ロジックを、合意した仕様（データ0件・1件時は0kWh、Δt<=0は0h扱い、瞬時発電量計算エラー時は0Wで継続）に基づき確認・微修正。"
+      - "[x] `RunSingleSimulationScenarioUseCase` の型ヒントを改善 (`model_loader`, `wind_data_reader`)。"
+      - "[x] `tests/use_cases/test_simulation_use_cases.py` に、Δt計算ロジックとエッジケース（データ0件、1件、複数件、`observed_at` の間隔が均一・不均一・ゼロ）に対応するユニットテストを追加・修正し、PASSを確認。"
+      - "[ ] (申し送り事項) `docs/requirement.yml` の FR-003 の記述を、決定した仕様に合わせて明確化する。 (別フェーズで対応)"
+      - "[ ] (申し送り事項) `RunSingleSimulationScenarioUseCase` の `simulator_factory` の型ヒント改善を検討する。"
+      - "[ ] (申し送り事項) `src/wind_compass/use_cases/run_single_scenario.py` の同名クラスとの統一について確認する。"
+    acceptance_criteria:
+      - "Δtの扱い・積算仕様が、コード・テスト・ドキュメントで一貫していること。"
+      - "エッジケース（データ0件、1件、Δt=0等）で期待通りの出力となること。"
+    metadata:
+      related_requirement: "TASK-008" # このIDは issue#37_01 側から
+      depends_on: []
+      milestone: "v0.1: MVPリリース" # issue#37_01 側のマイルストーン
+      labels:
+        - "type: chore"
+        - "layer: usecase"
+        - "epic: mvp-core"
+        - "priority: high"
+  # --- ここまで issue#37_01 ブランチ側の TASK-008 ---
+
+  # --- ここから main ブランチ側の新しい Issue を追加 ---
   - title: "[Refactor] RunSingleSimulationScenarioUseCase の統一 (TASK-006)"
     description: |
       現在 `src/wind_compass/use_cases/run_single_scenario.py` と `src/wind_compass/use_cases/simulation_use_cases.py` の2箇所に存在する `RunSingleSimulationScenarioUseCase` の実装を比較検討し、最適な形に統一する。
@@ -420,32 +448,6 @@ github_issues:
         - "layer: adapter-ui"
         - "epic: reporting" # レポート機能の一部
         - "priority: medium"
-
-  - title: "[Chore] 年間発電量計算における時間間隔 (Δt) の仕様決定と実装統一 (TASK-008)"
-    description: |
-      年間発電量計算時の時間間隔 (Δt) の扱いについて、(A) 風況データの観測時刻 (`observed_at`) から都度推定する方式、(B) `domain/constants.py` の `DEFAULT_TIME_INTERVAL_HOURS` (固定値) を使用する方式、のどちらを正式な仕様とするか決定する。
-      決定に基づき、関連するユースケース (`RunSingleSimulationScenarioUseCase`) およびドメインサービス (`PowerGenerationSimulator`、影響あれば) のロジックを修正・統一する。
-      要件定義書 (FR-003) および関連ドキュメントの記述を更新する。
-    tasks:
-      - "[ ] Δtの扱いについて、(A)データから推定、(B)固定値、のメリット・デメリット、および要件定義書の記述「データから推定」の意図を再確認し、仕様を最終決定する。"
-      - "[ ] 決定した仕様に基づき、`RunSingleSimulationScenarioUseCase` (TASK-006で統一されるもの) のΔt計算ロジックを実装/修正する。"
-      - "[ ] 関連するユニットテストを修正・追加する。"
-      - "[ ] `docs/requirement.yml` の FR-003 の記述を、決定した仕様に合わせて明確化する。"
-    acceptance_criteria:
-      - "Δtの扱いに関する仕様が明確に定義され、チーム内で合意されている。"
-      - "ユースケースにおけるΔtの計算ロジックが決定した仕様に沿って統一されている。"
-      - "関連ドキュメントの記述が最新の仕様と一致している。"
-    metadata:
-      related_requirement: "FR-003"
-      depends_on: []
-      milestone: "v0.2: レポート機能強化" # 仕様決定は早めに行う
-      labels:
-        - "type: chore" # 仕様決定とそれに伴う小規模修正
-        - "layer: domain"
-        - "layer: usecase"
-        - "type: documentation"
-        - "priority: high"
-        - "status: needs-discussion"
 
   - title: "[Test] 性能ベンチマークテストの導入 (TASK-009)"
     description: |
@@ -509,7 +511,7 @@ github_issues:
       related_requirement: "FR-004 (グラフオプション)"
       depends_on:
         - "TASK-010" # ライブラリ選定と仕様決定待ち
-        - "US-006"   # 結果データが必要
+        - "US-006"    # 結果データが必要
       milestone: "v0.2: レポート機能強化"
       labels:
         - "type: user-story"

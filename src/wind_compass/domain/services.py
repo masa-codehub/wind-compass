@@ -25,25 +25,35 @@ class PowerGenerationSimulator:
         return turbine_power * efficiency
 
     def _solve_for_rpm(self, shaft_power, torque_curve: PolynomialCurve):
-        # shaft_power = torque(rpm) * rpm * 2pi/60
-        coeffs = list(torque_curve.coeffs)
+        # torque_curve: krpm基準
+        # shaft_power = T_gen(rpm_gen/1000) * rpm_gen * 2pi/60
+        # T_gen(x_krpm) = c3 x_krpm^3 + ... + c0
+        # x_krpm = rpm_gen / 1000
+        # T_gen(rpm_gen) = c3 (rpm_gen/1000)^3 + ...
+        # 多項式係数をrpm基準にスケーリング
+        orig_coeffs = list(torque_curve.coeffs)
+        degree = len(orig_coeffs) - 1
+        scaled_coeffs = []
+        for i, c in enumerate(orig_coeffs):
+            scaled_coeffs.append(c / (1000 ** (degree - i)))
+        # T(rpm) * rpm
+        coeffs = list(scaled_coeffs)
         coeffs.append(0)  # T(rpm) * rpm → 次数+1
         coeffs = [c * RPM_TO_RAD_PER_SEC for c in coeffs]
         coeffs[-1] -= shaft_power
         roots = [r for r in numpy.roots(coeffs) if numpy.isreal(r)]
         roots = [float(r.real) for r in roots if r.real > 0]
-        # 物理的に意味のある正の実数解のみを採用。複数ある場合は最小値（最も安定な回転数）を選択する仕様。
         if not roots:
             return 0.0
         rpm = min(roots)
-        # 物理的に不適切なほど大きい回転数は0とみなす（例: 1e4 rpm超）
         if rpm > 1e4:
             return 0.0
         return rpm
 
     def _calculate_current(self, rpm):
         # 回転数から電流を計算
-        return self._model.current_curve.calculate(rpm)
+        # current_curveもkrpm基準
+        return self._model.current_curve.calculate(rpm / 1000)
 
     def _calculate_final_power(self, current, voltage):
         # 電流と電圧から最終電力を計算
@@ -54,7 +64,6 @@ class PowerGenerationSimulator:
         return rpm >= cut_in_rpm
 
     def calculate_instantaneous_power(self, wind_reading: WindReading, turbine_angle_deg: float, efficiency: float, voltage: float, cut_in_rpm: float):
-        # 一連の計算をオーケストレーション
         eff_ws = self._calculate_effective_wind_speed(
             wind_reading.wind_speed, wind_reading.wind_direction, turbine_angle_deg)
         if eff_ws == 0.0:
@@ -62,9 +71,9 @@ class PowerGenerationSimulator:
         turbine_power = self._calculate_turbine_power(eff_ws)
         shaft_power = self._calculate_transmitted_power(
             turbine_power, efficiency)
-        rpm = self._solve_for_rpm(shaft_power, self._model.torque_curve)
-        if not self._is_cut_in(rpm, cut_in_rpm):
+        rpm_gen = self._solve_for_rpm(shaft_power, self._model.torque_curve)
+        if not self._is_cut_in(rpm_gen, cut_in_rpm):
             return Power(0.0)
-        current = self._calculate_current(rpm)
+        current = self._calculate_current(rpm_gen)
         final_power = self._calculate_final_power(current, voltage)
         return Power(final_power)

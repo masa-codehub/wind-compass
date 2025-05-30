@@ -66,9 +66,10 @@ class JsonConfigReader(PowerPlantModelReader):
         except FileNotFoundError:
             raise
         except json.JSONDecodeError as e:
-            raise
+            # Add file_path to the error message for better context
+            raise json.JSONDecodeError(f"Failed to decode JSON from {file_path}: {e.msg}", e.doc, e.pos)
         except OSError as e:
-            raise ValueError(f"Failed to read JSON file: {e}")
+            raise ValueError(f"Failed to read JSON file {file_path}: {e}")
 
         required_top_keys = [
             self.TURBINE_POWER_CURVE,
@@ -79,6 +80,10 @@ class JsonConfigReader(PowerPlantModelReader):
             if key not in data:
                 raise ValueError(
                     f"Missing top-level key '{key}' in config file: {file_path}")
+            if not isinstance(data[key], dict):
+                raise ValueError(
+                    f"Top-level key '{key}' in config file {file_path} must be a dictionary."
+                )
 
         try:
             self._validate_curve_data(
@@ -95,9 +100,12 @@ class JsonConfigReader(PowerPlantModelReader):
                 data[self.GENERATOR_CURRENT_CURVE], self.GENERATOR_CURRENT_CURVE)
             g_current = PolynomialCurve(coeffs=list(
                 data[self.GENERATOR_CURRENT_CURVE][self.COEFFS]))
-        except ValueError as e:
+        
+        # Catch ValueError from _validate_curve_data or PolynomialCurve init
+        # KeyError should be caught by the top-level key check or _validate_curve_data
+        except (ValueError, TypeError) as e: 
             raise ValueError(f"Invalid config data in {file_path}: {e}") from e
-        except Exception as e:
+        except Exception as e: # Catch any other unexpected errors
             raise ValueError(
                 f"Unexpected error processing config data in {file_path}: {e}") from e
 

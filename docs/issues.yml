@@ -259,9 +259,12 @@ github_issues:
     description: |
       ユーザーストーリー `US-003` を実装し、異なる設備特性コンフィグファイルを指定してシミュレーション結果を比較できるようにする。(アジャイル要求リスト US-003 参照)
     tasks:
-      - "CLIで設備特性コンフィグファイルのパスを指定できることを確認する。(既存の機能で対応可能か確認)"
-      - "異なるコンフィグファイル（例: 異なる係数セット）で実行した場合に、結果が変動することを確認するテスト（E2Eまたは結合テスト）を作成する。"
-      - "コンフィグファイルの内容検証（必須キー、係数の数など）を`JsonConfigReader`アダプタに追加する。"
+      - "[x] `src/wind_compass/adapters/data_readers.py` の `JsonConfigReader` に、設備特性コンフィグファイルのスキーマ検証ロジック（必須キー、coeffsの型・要素数など）を追加。"
+      - "[x] `JsonConfigReader` のエラーハンドリングを改善し、`json.JSONDecodeError` や `OSError` をファイルパス情報を含む `ValueError` にラップして再送出するように修正。"
+      - "[x] `tests/adapters/test_data_readers.py` の `TestJsonConfigReader` に、上記のバリデーション強化に対応する単体テストケースを追加（既存テストで多くをカバー）。"
+      - "[x] `tests/use_cases/test_run_single_scenario_compare_config.py` に、異なる有効なコンフィグファイル (`valid_config.json`, `valid_config_B.json`) と強風データ (`valid_wind_data_strong.csv`) を使用して `RunSingleSimulationScenarioUseCase` を実行し、年間発電量が変動することを確認するテスト (`test_annual_power_generation_differs_between_configs_strong_wind`) を実装。"
+      - "[x] 比較テスト用のテストフィクスチャ (`valid_config_B.json`, `valid_wind_data_strong.csv`) を `tests/fixtures/` に追加。"
+      - "[ ] (確認事項) CLIで設備特性コンフィグファイルのパスを指定できる機能は、`US-002` での実装を前提とし、本Issueではユースケースレベルのテストでファイルパス指定の動作を確認。" # CLI直接実装はUS-002の範疇という申し送りを反映
     acceptance_criteria:
       - "`US-003`の`AC-03-01`および`AC-03-02`を満たすこと。"
     metadata:

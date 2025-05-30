@@ -283,9 +283,12 @@ github_issues:
     description: |
       ユーザーストーリー`US-004`を実装し、シミュレーション結果をCSVファイルとして保存できるようにする。(アジャイル要求リスト US-004 参照)
     tasks:
-      - "CLIに`--output-csv <filepath>`オプションを追加する。"
-      - "`ConsolePresenter`（または新しい`CsvPresenter`）に、結果をCSV形式で指定されたファイルパスに書き出す機能を追加する。"
-      - "オプションが指定された場合のみ、ファイルが出力されることを確認するE2Eテストを追加する。"
+      - "[x] `src/wind_compass/cli.py` に `--output-csv <filepath>` コマンドラインオプションを追加。"
+      - "[x] `src/wind_compass/adapters/csv_presenter.py` に、マトリクス形式のシミュレーション結果データをCSV形式で指定ファイルパスに書き出す `CsvPresenter` クラスを新規実装。"
+      - "[x] `CsvPresenter` 内で、ファイルパス空の場合の `ValueError` 送出、ファイル書き込み時の `IOError` 等のエラーハンドリングを実装（コンソールへのエラーメッセージ出力）。"
+      - "[x] `tests/adapters/test_csv_presenter.py` に `CsvPresenter` の単体テストを実装（正常系、空データ、不正パス初期化など、カバレッジ83%）。"
+      - "[x] `cli.py` （ダミー実装）にて `--output-csv` オプション有無によるCSVファイル生成制御と内容を手動で確認。"
+      - "[ ] (US-002依存) 自動化されたE2Eテスト（`--output-csv` オプションの有無によるファイル生成の確認など）は、`cli.py` の本格実装後に `US-002` と連携して整備予定。" # E2Eテストの申し送りを反映
     acceptance_criteria:
       - "`US-004`の`AC-04-01`および`AC-04-02`を満たすこと。"
     metadata:

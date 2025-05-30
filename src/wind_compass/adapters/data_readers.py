@@ -40,6 +40,24 @@ class JsonConfigReader(PowerPlantModelReader):
     GENERATOR_TORQUE_CURVE = "generator_torque_curve"
     GENERATOR_CURRENT_CURVE = "generator_current_curve"
     COEFFS = "coeffs"
+    EXPECTED_COEFFS_COUNT = 4
+
+    def _validate_curve_data(self, curve_data: dict, curve_name: str):
+        if self.COEFFS not in curve_data:
+            raise ValueError(
+                f"Missing key '{self.COEFFS}' in '{curve_name}' config.")
+        coeffs = curve_data[self.COEFFS]
+        if not isinstance(coeffs, list):
+            raise ValueError(
+                f"'{self.COEFFS}' in '{curve_name}' must be a list.")
+        if len(coeffs) != self.EXPECTED_COEFFS_COUNT:
+            raise ValueError(
+                f"'{self.COEFFS}' in '{curve_name}' must have exactly {self.EXPECTED_COEFFS_COUNT} elements."
+            )
+        if not all(isinstance(c, (int, float)) for c in coeffs):
+            raise ValueError(
+                f"All elements in '{self.COEFFS}' in '{curve_name}' must be numbers."
+            )
 
     def read(self, file_path: str) -> PowerPlantModel:
         try:
@@ -51,17 +69,38 @@ class JsonConfigReader(PowerPlantModelReader):
             raise
         except OSError as e:
             raise ValueError(f"Failed to read JSON file: {e}")
+
+        required_top_keys = [
+            self.TURBINE_POWER_CURVE,
+            self.GENERATOR_TORQUE_CURVE,
+            self.GENERATOR_CURRENT_CURVE
+        ]
+        for key in required_top_keys:
+            if key not in data:
+                raise ValueError(
+                    f"Missing top-level key '{key}' in config file: {file_path}")
+
         try:
+            self._validate_curve_data(
+                data[self.TURBINE_POWER_CURVE], self.TURBINE_POWER_CURVE)
             t_curve = PolynomialCurve(coeffs=list(
                 data[self.TURBINE_POWER_CURVE][self.COEFFS]))
+
+            self._validate_curve_data(
+                data[self.GENERATOR_TORQUE_CURVE], self.GENERATOR_TORQUE_CURVE)
             g_torque = PolynomialCurve(coeffs=list(
                 data[self.GENERATOR_TORQUE_CURVE][self.COEFFS]))
+
+            self._validate_curve_data(
+                data[self.GENERATOR_CURRENT_CURVE], self.GENERATOR_CURRENT_CURVE)
             g_current = PolynomialCurve(coeffs=list(
                 data[self.GENERATOR_CURRENT_CURVE][self.COEFFS]))
-        except KeyError as e:
-            raise ValueError(f"Missing key in config: {e}")
+        except ValueError as e:
+            raise ValueError(f"Invalid config data in {file_path}: {e}") from e
         except Exception as e:
-            raise ValueError(f"Invalid config data: {e}")
+            raise ValueError(
+                f"Unexpected error processing config data in {file_path}: {e}") from e
+
         return PowerPlantModel(
             power_curve=t_curve,
             torque_curve=g_torque,

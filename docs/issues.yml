@@ -228,11 +228,11 @@ github_issues:
     description: |
       ユーザーストーリー `US-002` を実現するため、単一シナリオ実行機能を拡張し、複数のシナリオを一括で実行できるようにする。また、CLIから操作できるように全体を統合する。(アジャイル要求リスト US-002 参照)
     tasks:
-      - "`Click`ライブラリ等を用いて、コマンドライン引数（ファイルパス、複数の固定角度、複数の変速比）を解析する処理を`adapter-ui`レイヤーに実装する。(アジャイル要求リスト TASK-003B 参照)"
-      - "`RunMultipleSimulationScenariosUseCase`を実装し、入力されたパラメータの全組み合わせについて`RunSingleSimulationScenarioUseCase`を呼び出す。"
-      - "全シナリオの結果をマトリクス表に整形する`ConsolePresenter`クラスを`adapter-ui`レイヤーに実装する。"
-      - "依存性注入（DI）コンテナ（手動またはライブラリ）をセットアップし、`main`関数ですべてのコンポーネントを結合する。"
-      - "E2E（エンドツーエンド）テストを作成し、コマンド実行から結果表示までの一連の流れを確認する。"
+      - "[x] `Click`ライブラリを用いて、コマンドライン引数（ファイルパス、複数の固定角度、効率、電圧、カットインRPM）を解析する処理を`adapter-ui`レイヤーに実装した（`--gear-ratios`オプションはスコープ外として削除）。"
+      - "[x] `RunMultipleSimulationScenariosUseCase`を実装し、指定された複数の固定角度について`RunSingleSimulationScenarioUseCase`を呼び出すように修正した（変速比の組み合わせは除外）。"
+      - "[x] 全シナリオの結果（角度ごと）をマトリクス形式の表として整形する`ConsolePresenter`クラスを`adapter-ui`レイヤーに実装した。"
+      - "[x] 依存性注入(DI)のため、エントリーポイント(`__main__.py`)でコンポーネントをインスタンス化し、`adapters/ui/cli.py`の`get_simulate_command`ファクトリ関数経由でコマンドに注入する構成を実装した。"
+      - "[x] E2Eテストを作成し、コマンド実行から角度ごとの結果表示までを確認するように修正した（変速比関連の検証は削除）。"
     acceptance_criteria:
       - "`US-002`の`AC-02-01`および`AC-02-02`を満たすこと。"
       - "CLIで`-h`または`--help`オプションにより、コマンドの使い方が表示されること。"

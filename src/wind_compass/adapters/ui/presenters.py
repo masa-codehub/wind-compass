@@ -7,9 +7,9 @@ class ConsolePresenter:
     def present_multiple_scenarios(self, results: List[ScenarioResult], angles: List[float]) -> str:
         if not results:
             return "No simulation results to present."
-        # angle -> annual_power or error
+        # angle -> annual_power_kwh or error
         results_map = {
-            r.angle: r.annual_power if r.error_message is None else f"Error: {r.error_message[:20]}" for r in results}
+            r.angle: r.annual_power_kwh if r.error_message is None else f"Error: {r.error_message[:20]}" for r in results}
         table_data = []
         header = ["Angle (deg)", "Annual Power (kWh)"]
         table_data.append(header)

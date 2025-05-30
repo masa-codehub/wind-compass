@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+
 @dataclass(frozen=True)
 class SingleScenarioInputDTO:
     """
@@ -16,10 +17,11 @@ class SingleScenarioInputDTO:
     """
     wind_data_path: str
     config_file_path: str
-    angle: float # Matches current use_cases/simulation_use_cases.py and cli.py for input
+    angle: float  # Matches current use_cases/simulation_use_cases.py and cli.py for input
     efficiency: Optional[float] = None
     voltage: Optional[float] = None
     cut_in_rpm: Optional[float] = None
+
 
 @dataclass(frozen=True)
 class SingleScenarioOutputDTO:
@@ -32,6 +34,7 @@ class SingleScenarioOutputDTO:
     """
     annual_power_kwh: Optional[float] = None
     error_message: Optional[str] = None
+
 
 @dataclass(frozen=True)
 class MultipleScenariosInputDTO:
@@ -53,6 +56,7 @@ class MultipleScenariosInputDTO:
     voltage: Optional[float] = None
     cut_in_rpm: Optional[float] = None
 
+
 @dataclass(frozen=True)
 class ScenarioResult:
     """
@@ -64,5 +68,6 @@ class ScenarioResult:
         error_message: Error message if the simulation for this scenario failed. Optional.
     """
     angle: float
-    annual_power_kwh: Optional[float] = None # Renamed from annual_power for consistency
+    # Renamed from annual_power for consistency
+    annual_power_kwh: Optional[float] = None
     error_message: Optional[str] = None

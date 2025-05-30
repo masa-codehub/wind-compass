@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 from datetime import datetime
+from wind_compass.domain.constants import DEFAULT_TIME_INTERVAL_HOURS
 
 from wind_compass.use_cases.run_single_scenario import (
     RunSingleSimulationScenarioUseCase, ApplicationError
@@ -19,9 +20,9 @@ class DummyWindReading(WindReading):
 
 def make_input_dto():
     return SingleScenarioInputDTO(
-        wind_data_file_path="dummy_wind.csv",
+        wind_data_path="dummy_wind.csv",
         config_file_path="dummy_config.json",
-        turbine_angle_deg=0.0,
+        angle=0.0,
         efficiency=0.9,
         voltage=100.0,
         cut_in_rpm=10.0
@@ -50,11 +51,16 @@ def test_run_single_scenario_success():
     output = use_case.execute(input_dto)
     # Assert
     mock_wind_data_reader.read.assert_called_once_with(
-        input_dto.wind_data_file_path)
+        input_dto.wind_data_path)
     mock_config_reader.read.assert_called_once_with(input_dto.config_file_path)
     assert mock_simulator.calculate_instantaneous_power.call_count == 2
-    expected_kwh = (1000.0 * (1/6) + 1000.0 * (1/6)) / 1000.0
-    assert output.annual_power_generation_kwh == pytest.approx(expected_kwh)
+    # Δt固定値で2点分
+    power_watts = 1000.0
+    delta_t_hours = DEFAULT_TIME_INTERVAL_HOURS
+    num_data_points = 2
+    total_energy_wh = (power_watts * delta_t_hours) * num_data_points
+    expected_kwh = total_energy_wh / 1000.0
+    assert output.annual_power_kwh == pytest.approx(expected_kwh)
 
 
 def test_run_single_scenario_wind_file_not_found():
@@ -164,8 +170,11 @@ def test_run_single_scenario_multiple_power_values():
     )
     input_dto = make_input_dto()
     output = use_case.execute(input_dto)
-    expected_kwh = (500.0 * (1/6) + 1500.0 * (1/6)) / 1000.0
-    assert output.annual_power_generation_kwh == pytest.approx(expected_kwh)
+    # Δt固定値で2点分
+    delta_t_hours = DEFAULT_TIME_INTERVAL_HOURS
+    total_energy_wh = 500.0 * delta_t_hours + 1500.0 * delta_t_hours
+    expected_kwh = total_energy_wh / 1000.0
+    assert output.annual_power_kwh == pytest.approx(expected_kwh)
 
 
 def test_run_single_scenario_unexpected_exception():

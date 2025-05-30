@@ -40,6 +40,24 @@ class JsonConfigReader(PowerPlantModelReader):
     GENERATOR_TORQUE_CURVE = "generator_torque_curve"
     GENERATOR_CURRENT_CURVE = "generator_current_curve"
     COEFFS = "coeffs"
+    EXPECTED_COEFFS_COUNT = 4
+
+    def _validate_curve_data(self, curve_data: dict, curve_name: str):
+        if self.COEFFS not in curve_data:
+            raise ValueError(
+                f"Missing key '{self.COEFFS}' in '{curve_name}' config.")
+        coeffs = curve_data[self.COEFFS]
+        if not isinstance(coeffs, list):
+            raise ValueError(
+                f"'{self.COEFFS}' in '{curve_name}' must be a list.")
+        if len(coeffs) != self.EXPECTED_COEFFS_COUNT:
+            raise ValueError(
+                f"'{self.COEFFS}' in '{curve_name}' must have exactly {self.EXPECTED_COEFFS_COUNT} elements."
+            )
+        if not all(isinstance(c, (int, float)) for c in coeffs):
+            raise ValueError(
+                f"All elements in '{self.COEFFS}' in '{curve_name}' must be numbers."
+            )
 
     def read(self, file_path: str) -> PowerPlantModel:
         try:
@@ -48,30 +66,49 @@ class JsonConfigReader(PowerPlantModelReader):
         except FileNotFoundError:
             raise
         except json.JSONDecodeError as e:
-            raise
+            # Add file_path to the error message for better context
+            raise json.JSONDecodeError(f"Failed to decode JSON from {file_path}: {e.msg}", e.doc, e.pos)
         except OSError as e:
-            raise ValueError(f"Failed to read JSON file: {e}")
+            raise ValueError(f"Failed to read JSON file {file_path}: {e}")
+
+        required_top_keys = [
+            self.TURBINE_POWER_CURVE,
+            self.GENERATOR_TORQUE_CURVE,
+            self.GENERATOR_CURRENT_CURVE
+        ]
+        for key in required_top_keys:
+            if key not in data:
+                raise ValueError(
+                    f"Missing top-level key '{key}' in config file: {file_path}")
+            if not isinstance(data[key], dict):
+                raise ValueError(
+                    f"Top-level key '{key}' in config file {file_path} must be a dictionary."
+                )
+
         try:
-            t_coeffs = list(data[self.TURBINE_POWER_CURVE][self.COEFFS])
-            g_torque_coeffs = list(
-                data[self.GENERATOR_TORQUE_CURVE][self.COEFFS])
-            g_current_coeffs = list(
-                data[self.GENERATOR_CURRENT_CURVE][self.COEFFS])
-            for coeffs, name in [
-                (t_coeffs, 'turbine_power_curve'),
-                (g_torque_coeffs, 'generator_torque_curve'),
-                (g_current_coeffs, 'generator_current_curve')
-            ]:
-                if len(coeffs) != 4:
-                    raise ValueError(
-                        f"{name} must have exactly 4 coefficients")
-            t_curve = PolynomialCurve(coeffs=t_coeffs)
-            g_torque = PolynomialCurve(coeffs=g_torque_coeffs)
-            g_current = PolynomialCurve(coeffs=g_current_coeffs)
-        except KeyError as e:
-            raise ValueError(f"Missing key in config: {e}")
-        except Exception as e:
-            raise ValueError(f"Invalid config data: {e}")
+            self._validate_curve_data(
+                data[self.TURBINE_POWER_CURVE], self.TURBINE_POWER_CURVE)
+            t_curve = PolynomialCurve(coeffs=list(
+                data[self.TURBINE_POWER_CURVE][self.COEFFS]))
+
+            self._validate_curve_data(
+                data[self.GENERATOR_TORQUE_CURVE], self.GENERATOR_TORQUE_CURVE)
+            g_torque = PolynomialCurve(coeffs=list(
+                data[self.GENERATOR_TORQUE_CURVE][self.COEFFS]))
+
+            self._validate_curve_data(
+                data[self.GENERATOR_CURRENT_CURVE], self.GENERATOR_CURRENT_CURVE)
+            g_current = PolynomialCurve(coeffs=list(
+                data[self.GENERATOR_CURRENT_CURVE][self.COEFFS]))
+        
+        # Catch ValueError from _validate_curve_data or PolynomialCurve init
+        # KeyError should be caught by the top-level key check or _validate_curve_data
+        except (ValueError, TypeError) as e: 
+            raise ValueError(f"Invalid config data in {file_path}: {e}") from e
+        except Exception as e: # Catch any other unexpected errors
+            raise ValueError(
+                f"Unexpected error processing config data in {file_path}: {e}") from e
+
         return PowerPlantModel(
             power_curve=t_curve,
             torque_curve=g_torque,

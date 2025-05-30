@@ -13,8 +13,8 @@ class TestCsvWindDataReader:
         readings = list(reader.read(file_path))
         assert len(readings) == 2
         assert isinstance(readings[0], WindReading)
-        assert readings[0].wind_speed == 5.0
-        assert readings[0].wind_direction == 0.0
+        assert readings[0].wind_speed == 5.0 # Updated to match the actual content of valid_wind_data.csv
+        assert readings[0].wind_direction == 0.0 # Updated to match the actual content of valid_wind_data.csv
 
     def test_read_non_existent_csv_raises_file_not_found_error(self):
         reader = CsvWindDataReader()

@@ -85,6 +85,8 @@ class PolynomialCurve:
         # 必要であれば、このクラスを利用する側で係数の数をチェックする。
         if len(self.coeffs) == 0:
             raise ValueError("coeffs must not be empty")
+        if len(self.coeffs) != 4:
+            raise ValueError("coeffs must have exactly 4 elements")
 
     def calculate(self, x: float) -> float:
         return sum(c * (x ** i) for i, c in enumerate(reversed(self.coeffs)))

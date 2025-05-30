@@ -63,9 +63,9 @@ class JsonConfigReader(PowerPlantModelReader):
         except Exception as e:
             raise ValueError(f"Invalid config data: {e}")
         return PowerPlantModel(
-            turbine_power_curve=t_curve,
-            generator_torque_curve=g_torque,
-            generator_current_curve=g_current
+            power_curve=t_curve,
+            torque_curve=g_torque,
+            current_curve=g_current
         )
 
 

@@ -67,7 +67,8 @@ class WindReading:
     """観測時刻・風速・風向を表す値オブジェクト"""
     observed_at: datetime
     wind_speed: float  # m/s (mainブランチのコメント: max_wind_speed_mps を考慮し、m/s と明記)
-    wind_direction: float  # deg (mainブランチのコメント: max_wind_direction_deg を考慮し、deg と明記)
+    # deg (mainブランチのコメント: max_wind_direction_deg を考慮し、deg と明記)
+    wind_direction: float
 
 
 @dataclass(frozen=True)
@@ -84,6 +85,8 @@ class PolynomialCurve:
         # 必要であれば、このクラスを利用する側で係数の数をチェックする。
         if len(self.coeffs) == 0:
             raise ValueError("coeffs must not be empty")
+        if len(self.coeffs) != 4:
+            raise ValueError("coeffs must have exactly 4 elements")
 
     def calculate(self, x: float) -> float:
         return sum(c * (x ** i) for i, c in enumerate(reversed(self.coeffs)))

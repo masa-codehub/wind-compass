@@ -43,7 +43,7 @@ class TestJsonConfigReader:
         file_path = os.path.join(FIXTURES_DIR, 'valid_config.json')
         model = reader.read(file_path)
         assert isinstance(model, PowerPlantModel)
-        assert model.turbine_power_curve.coeffs == [0.0, 1.0, 2.0, 3.0]
+        assert model.power_curve.coeffs == [0.0, 1.0, 2.0, 3.0]
 
     def test_read_non_existent_json_raises_file_not_found_error(self):
         reader = JsonConfigReader()

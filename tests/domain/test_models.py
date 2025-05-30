@@ -3,17 +3,17 @@ import pytest
 
 
 def test_polynomial_curve_calculate():
-    # 2次式: 2x^2 + 3x + 4
-    curve = PolynomialCurve([2, 3, 4])
+    # 2次式: 2x^2 + 3x + 4 → 4次式: 0x^3 + 2x^2 + 3x + 4
+    curve = PolynomialCurve([0, 2, 3, 4])
     assert curve.calculate(0) == 4
-    assert curve.calculate(1) == 2 + 3 + 4  # 9
-    assert curve.calculate(2) == 2*4 + 3*2 + 4  # 8+6+4=18
+    assert curve.calculate(1) == 0 + 2 + 3 + 4  # 9
+    assert curve.calculate(2) == 0*8 + 2*4 + 3*2 + 4  # 8+6+4=18
 
 
 def test_power_plant_model_holds_curves():
-    power_curve = PolynomialCurve([1, 0, 0])  # x^2
-    torque_curve = PolynomialCurve([0, 1, 0])  # x
-    current_curve = PolynomialCurve([0, 0, 1])  # 1
+    power_curve = PolynomialCurve([0, 1, 0, 0])  # x^2
+    torque_curve = PolynomialCurve([0, 0, 1, 0])  # x
+    current_curve = PolynomialCurve([0, 0, 0, 1])  # 1
     model = PowerPlantModel(
         power_curve=power_curve,
         torque_curve=torque_curve,
@@ -46,6 +46,13 @@ def test_polynomial_curve_typeerror_on_non_number_elements():
 def test_polynomial_curve_valueerror_on_empty():
     with pytest.raises(ValueError):
         PolynomialCurve([])
+
+
+def test_polynomial_curve_valueerror_on_invalid_length():
+    with pytest.raises(ValueError, match="coeffs must have exactly 4 elements"):
+        PolynomialCurve([1, 2, 3])
+    with pytest.raises(ValueError, match="coeffs must have exactly 4 elements"):
+        PolynomialCurve([1, 2, 3, 4, 5])
 
 
 def test_power_plant_model_typeerror_on_non_curve():

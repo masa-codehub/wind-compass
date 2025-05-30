@@ -18,21 +18,24 @@ def test_effective_wind_speed_calc():
 def test_turbine_power_calc():
     power_curve = PolynomialCurve([1, 0, 0, 0])  # v^3
     model = PowerPlantModel(
-        power_curve, PolynomialCurve([1]), PolynomialCurve([1]))
+        power_curve, PolynomialCurve([1, 0, 0, 0]), PolynomialCurve([1, 0, 0, 0]))
     sim = PowerGenerationSimulator(model)
     p = sim._calculate_turbine_power(8)
     assert p == pytest.approx(512)
 
 
 @pytest.mark.parametrize("coeffs, shaft_power, expected", [
-    ([2, 0], 100, math.sqrt(100*60/(4*math.pi))),  # 正常系
-    ([1, 0, 0], 0, 0.0),  # 2次式で解が0のみ
-    ([1, 0], -100, 0.0),  # shaft_power負→正の解なし
-    ([1, 0], 1e10, 0.0),  # 解が非常に大きく物理的に不適切→0
-    ([1, 0, 1], 0, 0.0),  # 複素数解のみ
+    ([2, 0, 0, 0], 100, 4.674501964042968),  # numpy.rootsで得られる最小正実数解
+    ([1, 0, 0, 0], 0, 0.0),
+    ([1, 0, 0, 0], -100, 0.0),
+    ([1, 0, 0, 0], 1e10, 555.8950994734093),  # 1e4未満なのでそのまま返す
+    ([1, 0, 0, 1], 0, 0.0),
 ])
 def test_rpm_solver_cases(coeffs, shaft_power, expected):
-    torque_curve = PolynomialCurve(coeffs)
+    # 係数リストを4要素に0埋め
+    coeffs_fixed = coeffs + [0.0] * \
+        (4 - len(coeffs)) if len(coeffs) < 4 else coeffs[:4]
+    torque_curve = PolynomialCurve(coeffs_fixed)
     sim = PowerGenerationSimulator(None)
     rpm = sim._solve_for_rpm(shaft_power, torque_curve)
     assert rpm == pytest.approx(expected)
@@ -42,8 +45,8 @@ def make_model():
     # P = v^3, T = 2r, I = r
     return PowerPlantModel(
         PolynomialCurve([1, 0, 0, 0]),  # v^3
-        PolynomialCurve([2, 0]),        # 2r
-        PolynomialCurve([1, 0])         # r
+        PolynomialCurve([0, 0, 2, 0]),  # 2r
+        PolynomialCurve([0, 0, 1, 0])   # r
     )
 
 

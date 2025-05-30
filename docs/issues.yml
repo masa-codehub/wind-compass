@@ -203,12 +203,17 @@ github_issues:
     description: |
       ユーザーストーリー `US-001` を実現するためのユースケース（Interactor）を実装する。ドメインモデルとデータアダプタを統合し、単一シナリオのシミュレーションを実行し、結果を返す責務を持つ。(アジャイル要求リスト US-001 参照)
     tasks:
-      - "単一シナリオ実行のための入力DTO（パラメータ、ファイルパス）と出力DTO（年間発電量）を定義する。"
-      - "`RunSingleSimulationScenarioUseCase`を`use_cases`レイヤーに実装する。"
-      - "  データアダプタを介して風況データと設備モデルをロードする。"
-      - "  `PowerGenerationSimulator`ドメインサービスを呼び出して計算を実行する。"
-      - "  結果を出力DTOにマッピングする。"
-      - "ユースケースのユニットテストを作成する（リポジトリやドメインサービスはモック化/スタブ化する）。"
+      - "[x] `use_cases.dtos` モジュールに、入力DTO `SingleScenarioInputDTO`（風況データパス、設定ファイルパス、タービン角度、効率、電圧、カットインRPMをフィールドに持つ）及び出力DTO `SingleScenarioOutputDTO`（年間発電量kWhをフィールドに持つ）を定義 (旧`gear_ratio`は削除)。"
+      - "[x] `use_cases` レイヤーに `RunSingleSimulationScenarioUseCase` を実装:"
+      - "[x]   `WindDataReader` および `PowerPlantModelReader` インターフェースを介して、それぞれ風況データと設備モデルをロード。"
+      - "[x]   `PowerGenerationSimulator` ドメインサービス（ファクトリ経由で生成）を呼び出し、各風況データに対する瞬時発電電力を計算。"
+      - "[x]   `domain.constants.DEFAULT_TIME_INTERVAL_HOURS` (10分間隔) を使用して瞬時発電電力を積算し、年間総発電量(kWh)として `SingleScenarioOutputDTO` にマッピング。"
+      - "[x]   ファイルI/Oエラー (`FileNotFoundError`)、データ形式不正エラー (`ValueError`)、その他の予期せぬ例外を捕捉し、`ApplicationError` にラップして再送出するエラーハンドリングを実装。"
+      - "[x] `domain.constants` に年間発電量計算用の時間間隔 `DEFAULT_TIME_INTERVAL_HOURS` を定義。"
+      - "[x] `domain.models.PolynomialCurve` の `__post_init__` に、係数リスト `coeffs` が4要素であることを強制するバリデーションを追加。"
+      - "[x] 新規追加・修正されたクラスおよびメソッドにDocstringを付与し、型ヒントを具体化。"
+      - "[x] `tests/use_cases/test_run_single_scenario.py` に、`RunSingleSimulationScenarioUseCase` の正常系・異常系を網羅する単体テストを実装 (モック使用、カバレッジ100%達成)。"
+      - "[x] `PolynomialCurve` の仕様変更に伴い、`tests/domain/test_models.py` および `tests/domain/test_services.py` の関連テストを修正・追加し、全テストPASSを達成。"
     acceptance_criteria:
       - "`US-001`の`AC-01-01`および`AC-01-02`が、CLIとの最終的な結合を除いて、ユースケースレベルで満たされていること。"
       - "ユニットテストで、ユースケースがドメインサービスやリポジトリインターフェースと正しく連携していることを確認できること。"

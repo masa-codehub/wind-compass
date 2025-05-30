@@ -366,3 +366,175 @@ github_issues:
         - "layer: infrastructure"
         - "epic: foundation"
         - "priority: medium"
+
+  - title: "[Refactor] RunSingleSimulationScenarioUseCase の統一 (TASK-006)"
+    description: |
+      現在 `src/wind_compass/use_cases/run_single_scenario.py` と `src/wind_compass/use_cases/simulation_use_cases.py` の2箇所に存在する `RunSingleSimulationScenarioUseCase` の実装を比較検討し、最適な形に統一する。
+      エラーハンドリング戦略、時間間隔(Δt)の扱い(TASK-008での決定を反映)、依存性注入の方法も統一する。
+      `adapters/ui/cli.py` が利用するユースケースを、この統一された実装に変更する。
+    tasks:
+      - "[ ] 両実装のメリット・デメリットを評価し、統一後のあるべき姿を設計する。"
+      - "[ ] エラーハンドリングを `ApplicationError` に統一する (run_single_scenario.py 方式をベースに検討)。"
+      - "[ ] 時間間隔(Δt)の扱いについて、TASK-008 の決定を反映する。"
+      - "[ ] 依存性注入の方法を統一する (適切なファクトリやローダーのコンストラクタインジェクションを検討)。"
+      - "[ ] 統一されたユースケースを実装し、既存のテストをパスするように修正・追加する。"
+      - "[ ] `RunMultipleSimulationScenariosUseCase` が新しい統一ユースケースを利用するように修正する。"
+      - "[ ] 不要になった古いユースケース実装を削除する。"
+    acceptance_criteria:
+      - "単一の `RunSingleSimulationScenarioUseCase` 実装がコードベースに存在する。"
+      - "既存の単一シナリオおよび複数シナリオのE2Eテスト、ユニットテストがすべてパスする。"
+      - "エラーハンドリング、Δtの扱い、DIが一貫性のある方法で実装されている。"
+    metadata:
+      related_requirement: "NFR (保守性)"
+      depends_on:
+        - "TASK-008" # Δtの仕様決定待ち
+      milestone: "v0.2: レポート機能強化" # または新しいリファクタリングマイルストーン
+      labels:
+        - "type: technical-task"
+        - "layer: usecase"
+        - "layer: domain" # Δtの仕様により影響
+        - "priority: high"
+        - "status: needs-discussion" # 設計方針の議論が必要
+
+  - title: "[Feature] CLI機能の強化とCSV出力オプションの統合 (US-006)"
+    description: |
+      主要なCLIエントリーポイント (`src/wind_compass/adapters/ui/cli.py` の `simulate` コマンド) に `--output-csv <filepath>` オプションを追加し、CSVファイル出力機能を統合する。
+      `src/wind_compass/cli.py` のダミー実装は役割を終えるため、内容を整理し不要であれば削除する。
+    tasks:
+      - "[ ] `src/wind_compass/adapters/ui/cli.py` の `simulate` コマンドに `--output-csv` clickオプションを追加する。"
+      - "[ ] オプションが指定された場合、統一されたユースケース (TASK-006) の実行結果を `CsvPresenter` を用いて指定ファイルパスに保存する処理を実装する。"
+      - "[ ] `--output-csv` オプションに関するヘルプメッセージを更新する。"
+      - "[ ] CSV出力機能に関するE2Eテストを追加・更新する。"
+      - "[ ] `src/wind_compass/cli.py` の内容を見直し、不要であれば削除する。関連するREADME等の記述も更新する。"
+    acceptance_criteria:
+      - "CLIから `--output-csv` オプションを指定することで、シミュレーション結果がCSVファイルに出力される。"
+      - "オプションが指定されない場合は、従来通りコンソール出力のみとなる。"
+      - "不正なファイルパス指定時や書き込みエラー時のハンドリングが適切であること (CsvPresenterの既存機能と連携)。"
+    metadata:
+      related_requirement: "FR-004 (CSV出力)"
+      depends_on:
+        - "TASK-006" # 統一されたユースケースの利用
+      milestone: "v0.2: レポート機能強化"
+      labels:
+        - "type: user-story" # ユーザーに直接価値を提供
+        - "layer: adapter-ui"
+        - "epic: reporting" # レポート機能の一部
+        - "priority: medium"
+
+  - title: "[Chore] 年間発電量計算における時間間隔 (Δt) の仕様決定と実装統一 (TASK-008)"
+    description: |
+      年間発電量計算時の時間間隔 (Δt) の扱いについて、(A) 風況データの観測時刻 (`observed_at`) から都度推定する方式、(B) `domain/constants.py` の `DEFAULT_TIME_INTERVAL_HOURS` (固定値) を使用する方式、のどちらを正式な仕様とするか決定する。
+      決定に基づき、関連するユースケース (`RunSingleSimulationScenarioUseCase`) およびドメインサービス (`PowerGenerationSimulator`、影響あれば) のロジックを修正・統一する。
+      要件定義書 (FR-003) および関連ドキュメントの記述を更新する。
+    tasks:
+      - "[ ] Δtの扱いについて、(A)データから推定、(B)固定値、のメリット・デメリット、および要件定義書の記述「データから推定」の意図を再確認し、仕様を最終決定する。"
+      - "[ ] 決定した仕様に基づき、`RunSingleSimulationScenarioUseCase` (TASK-006で統一されるもの) のΔt計算ロジックを実装/修正する。"
+      - "[ ] 関連するユニットテストを修正・追加する。"
+      - "[ ] `docs/requirement.yml` の FR-003 の記述を、決定した仕様に合わせて明確化する。"
+    acceptance_criteria:
+      - "Δtの扱いに関する仕様が明確に定義され、チーム内で合意されている。"
+      - "ユースケースにおけるΔtの計算ロジックが決定した仕様に沿って統一されている。"
+      - "関連ドキュメントの記述が最新の仕様と一致している。"
+    metadata:
+      related_requirement: "FR-003"
+      depends_on: []
+      milestone: "v0.2: レポート機能強化" # 仕様決定は早めに行う
+      labels:
+        - "type: chore" # 仕様決定とそれに伴う小規模修正
+        - "layer: domain"
+        - "layer: usecase"
+        - "type: documentation"
+        - "priority: high"
+        - "status: needs-discussion"
+
+  - title: "[Test] 性能ベンチマークテストの導入 (TASK-009)"
+    description: |
+      要件定義書NFRに記載された性能目標（1年分の風況データ、16シナリオで60秒以内）を継続的に確認するため、性能ベンチマークテストを導入する。
+      (既存の `issues.yml` の `TASK-005` (性能ベンチマーク) を具体化・再定義)
+    tasks:
+      - "[ ] 性能測定用の大規模なダミー風況データ (約5万行) を生成または用意する。"
+      - "[ ] 16シナリオを指定してCLIを実行し、全体の処理時間を計測するスクリプトを作成する。"
+      - "[ ] (オプション) 計測結果を記録し、閾値を超えた場合に警告する仕組みを検討する (CI連携は別タスクでも可)。"
+      - "[ ] ベンチマークテストの実行手順をドキュメント化する。"
+    acceptance_criteria:
+      - "定義された条件下で性能テストを実行し、処理時間を計測できる。"
+      - "現在の実装が性能目標を満たしているか（または逸脱しているか）確認できる。"
+    metadata:
+      related_requirement: "NFR (performance)"
+      depends_on:
+        - "US-006" # 安定したCLI実行系が前提
+      milestone: "継続的改善 (Continuous Improvement)"
+      labels:
+        - "type: test"
+        - "layer: infrastructure"
+        - "epic: foundation"
+        - "priority: medium"
+
+  - title: "[Spike] グラフ出力機能のためのライブラリ調査と仕様検討 (US-005 Spike 再定義) (TASK-010)"
+    description: |
+      ユーザーストーリー US-005 (グラフ画像出力) の実現に向け、適切なPythonグラフ描画ライブラリを調査・選定する。また、出力するグラフの種類や形式に関する具体的な仕様を検討する。
+      (既存の `issues.yml` の `[Spike] グラフ描画ライブラリの調査・選定 (US-005関連)` を再定義・具体化)
+    tasks:
+      - "[ ] `Matplotlib`, `Seaborn`, `Plotly` 等の候補ライブラリについて、以下の観点で調査・比較する：レーダーチャート・棒グラフの描画容易性、画像ファイル出力の簡便さ、依存関係の重さ、ライセンス。"
+      - "[ ] 複数の角度に対する年間発電量を比較するのに適したグラフ形式（例：角度ごとの棒グラフ、最適角度を示すレーダーチャート等）を検討する。"
+      - "[ ] 簡単なプロトタイプを作成し、各ライブラリの使用感と出力品質を評価する。"
+      - "[ ] 調査結果、推奨ライブラリ、および具体的なグラフ仕様案（何を表示するか、どのような見た目か）をドキュメントにまとめる。"
+    acceptance_criteria:
+      - "グラフ描画に使用するライブラリが選定されている。"
+      - "出力するグラフの種類、表示項目、おおよそのデザインに関する仕様案が作成されている。"
+      - "選定理由と仕様案がチーム内で共有され、合意形成の材料となる。"
+    metadata:
+      related_requirement: "US-005"
+      depends_on: []
+      milestone: "v0.2: レポート機能強化"
+      labels:
+        - "type: spike"
+        - "epic: reporting"
+        - "priority: medium"
+        - "status: needs-discussion"
+
+  - title: "[Feature] 比較レポートのグラフ画像出力機能の実装 (US-007)"
+    description: |
+      ユーザーストーリー US-005 (グラフ画像出力) を実現する。TASK-010 の調査結果に基づき、選択されたライブラリを使用して、シミュレーション結果を指定されたファイルパスにグラフ画像として保存する。
+      (既存の `issues.yml` の `US-005` をID変更して再定義)
+    tasks:
+      - "[ ] CLIに `--output-graph <filepath>` オプションと、グラフタイプを指定するオプション（例: `--graph-type bar`）を追加する。"
+      - "[ ] 新しい `GraphPresenter` クラスを作成するか、既存の `ConsolePresenter` を拡張し、TASK-010で決定した仕様に基づきグラフ描画処理を実装する。"
+      - "[ ] 描画したグラフを指定されたファイルパスに画像として保存する機能を実装する。"
+      - "[ ] オプションが指定された場合のみグラフファイルが生成されることを確認するE2Eテストを追加する。"
+    acceptance_criteria:
+      - "CLIから `--output-graph` およびグラフタイプオプションを指定することで、指定された形式のグラフ画像ファイルが出力される。"
+      - "グラフの内容が、シミュレーション結果を正しく反映している。"
+    metadata:
+      related_requirement: "FR-004 (グラフオプション)"
+      depends_on:
+        - "TASK-010" # ライブラリ選定と仕様決定待ち
+        - "US-006"   # 結果データが必要
+      milestone: "v0.2: レポート機能強化"
+      labels:
+        - "type: user-story"
+        - "layer: adapter-ui"
+        - "epic: reporting"
+        - "priority: medium"
+
+  - title: "[Chore] プロジェクトドキュメントの全体的な整合性向上と更新 (TASK-011)"
+    description: |
+      これまでの課題解決 (TASK-006, TASK-008, US-006など) による仕様変更や実装の更新内容を、`docs/requirement.yml`, `docs/project-define.md`, README.md等の関連ドキュメントに正確に反映し、ドキュメントとコードベースの整合性を保つ。
+    tasks:
+      - "[ ] `RunSingleSimulationScenarioUseCase` の統一内容をドキュメントに反映。"
+      - "[ ] CLIのオプション変更（CSV出力統合など）をREADMEやヘルプメッセージの元となるドキュメントに反映。"
+      - "[ ] Δtの仕様決定内容を `requirement.yml` (FR-003) や関連箇所に反映。"
+      - "[ ] その他、軽微な記述の修正や最新化。"
+    acceptance_criteria:
+      - "主要なプロジェクトドキュメントが、現在のコードベースの仕様と一致している。"
+      - "ドキュメント間の記述に矛盾がない。"
+    metadata:
+      related_requirement: "NFR (保守性)"
+      depends_on: # 多くの修正タスク完了後
+        - "TASK-006"
+        - "US-006"
+        - "TASK-008"
+      milestone: "継続的改善 (Continuous Improvement)" # または各変更がマージされるタイミングで都度
+      labels:
+        - "type: documentation"
+        - "priority: low"

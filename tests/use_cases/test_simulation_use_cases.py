@@ -16,7 +16,7 @@ def test_multiple_scenarios_success():
 
     def fake_execute(single_input):
         angle = getattr(single_input, 'angle', 0)
-        return type('Result', (), {'annual_power': angle * 10})()
+        return type('Result', (), {'annual_power_kwh': angle * 10, 'error_message': None})()
     mock_single.execute.side_effect = fake_execute
     mock_single.input_dto_class = DummyInputDTO
 
@@ -28,8 +28,8 @@ def test_multiple_scenarios_success():
     )
     results = usecase.execute(input_dto)
     assert len(results) == 2
-    assert results[0].annual_power == 0 * 10
-    assert results[1].annual_power == 90 * 10
+    assert results[0].annual_power_kwh == 0 * 10
+    assert results[1].annual_power_kwh == 90 * 10
 
 
 def test_multiple_scenarios_with_error():
@@ -39,7 +39,7 @@ def test_multiple_scenarios_with_error():
         angle = getattr(single_input, 'angle', 0)
         if angle == 90:
             raise ValueError('test error')
-        return type('Result', (), {'annual_power': 123})()
+        return type('Result', (), {'annual_power_kwh': 123, 'error_message': None})()
     mock_single.execute.side_effect = fake_execute
     mock_single.input_dto_class = DummyInputDTO
 
@@ -51,5 +51,5 @@ def test_multiple_scenarios_with_error():
     )
     results = usecase.execute(input_dto)
     assert len(results) == 2
-    assert results[0].annual_power == 123
+    assert results[0].annual_power_kwh == 123
     assert results[1].error_message is not None

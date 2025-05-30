@@ -1,9 +1,10 @@
 import click
 from wind_compass.use_cases.dtos import MultipleScenariosInputDTO
 from wind_compass.adapters.ui.presenters import ConsolePresenter
-from wind_compass.use_cases.simulation_use_cases import RunMultipleSimulationScenariosUseCase, RunSingleSimulationScenarioUseCase
+from wind_compass.use_cases.simulation_use_cases import RunMultipleSimulationScenariosUseCase
 from wind_compass.adapters.data_readers import CsvWindDataReader, JsonConfigReader
 from wind_compass.domain.services import PowerGenerationSimulator
+from wind_compass.use_cases.run_single_scenario import RunSingleSimulationScenarioUseCase
 
 
 def parse_float_list(ctx, param, value):
@@ -30,9 +31,9 @@ def get_simulate_command(
     simulator_factory = simulator_factory or (
         lambda model: PowerGenerationSimulator(model))
     single_uc = single_uc or RunSingleSimulationScenarioUseCase(
-        simulator_factory=simulator_factory,
-        model_loader=config_reader.read,
-        wind_data_reader=wind_reader
+        wind_data_reader=wind_reader,
+        power_plant_model_reader=config_reader,
+        power_generation_simulator_factory=simulator_factory
     )
     multi_uc = multi_uc or RunMultipleSimulationScenariosUseCase(single_uc)
     presenter = presenter or ConsolePresenter()

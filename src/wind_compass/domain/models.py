@@ -67,7 +67,8 @@ class WindReading:
     """観測時刻・風速・風向を表す値オブジェクト"""
     observed_at: datetime
     wind_speed: float  # m/s (mainブランチのコメント: max_wind_speed_mps を考慮し、m/s と明記)
-    wind_direction: float  # deg (mainブランチのコメント: max_wind_direction_deg を考慮し、deg と明記)
+    # deg (mainブランチのコメント: max_wind_direction_deg を考慮し、deg と明記)
+    wind_direction: float
 
 
 @dataclass(frozen=True)

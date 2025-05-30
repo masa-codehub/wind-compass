@@ -52,20 +52,30 @@ class JsonConfigReader(PowerPlantModelReader):
         except OSError as e:
             raise ValueError(f"Failed to read JSON file: {e}")
         try:
-            t_curve = PolynomialCurve(coeffs=list(
-                data[self.TURBINE_POWER_CURVE][self.COEFFS]))
-            g_torque = PolynomialCurve(coeffs=list(
-                data[self.GENERATOR_TORQUE_CURVE][self.COEFFS]))
-            g_current = PolynomialCurve(coeffs=list(
-                data[self.GENERATOR_CURRENT_CURVE][self.COEFFS]))
+            t_coeffs = list(data[self.TURBINE_POWER_CURVE][self.COEFFS])
+            g_torque_coeffs = list(
+                data[self.GENERATOR_TORQUE_CURVE][self.COEFFS])
+            g_current_coeffs = list(
+                data[self.GENERATOR_CURRENT_CURVE][self.COEFFS])
+            for coeffs, name in [
+                (t_coeffs, 'turbine_power_curve'),
+                (g_torque_coeffs, 'generator_torque_curve'),
+                (g_current_coeffs, 'generator_current_curve')
+            ]:
+                if len(coeffs) != 4:
+                    raise ValueError(
+                        f"{name} must have exactly 4 coefficients")
+            t_curve = PolynomialCurve(coeffs=t_coeffs)
+            g_torque = PolynomialCurve(coeffs=g_torque_coeffs)
+            g_current = PolynomialCurve(coeffs=g_current_coeffs)
         except KeyError as e:
             raise ValueError(f"Missing key in config: {e}")
         except Exception as e:
             raise ValueError(f"Invalid config data: {e}")
         return PowerPlantModel(
-            turbine_power_curve=t_curve,
-            generator_torque_curve=g_torque,
-            generator_current_curve=g_current
+            power_curve=t_curve,
+            torque_curve=g_torque,
+            current_curve=g_current
         )
 
 

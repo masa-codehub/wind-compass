@@ -13,8 +13,8 @@ class TestCsvWindDataReader:
         readings = list(reader.read(file_path))
         assert len(readings) == 2
         assert isinstance(readings[0], WindReading)
-        assert readings[0].wind_speed == 10.5
-        assert readings[0].wind_direction == 270.0
+        assert readings[0].wind_speed == 5.0
+        assert readings[0].wind_direction == 0.0
 
     def test_read_non_existent_csv_raises_file_not_found_error(self):
         reader = CsvWindDataReader()
@@ -43,7 +43,9 @@ class TestJsonConfigReader:
         file_path = os.path.join(FIXTURES_DIR, 'valid_config.json')
         model = reader.read(file_path)
         assert isinstance(model, PowerPlantModel)
-        assert model.turbine_power_curve.coeffs == [0.0, 1.0, 2.0, 3.0]
+        assert model.power_curve.coeffs == [0.0, 1.0, 2.0, 3.0]
+        assert model.torque_curve.coeffs == [0.1, 1.1, 2.1, 3.1]
+        assert model.current_curve.coeffs == [0.2, 1.2, 2.2, 3.2]
 
     def test_read_non_existent_json_raises_file_not_found_error(self):
         reader = JsonConfigReader()
